@@ -1,6 +1,6 @@
 # pokemon_stuff
 
-In engineering phase, laying groundwork for data science insights, battles are conducted by user inputting an enumerated move value
+In engineering phase, laying groundwork for later data science insights, battles are conducted by user inputting an enumerated move value
 
 Pokemon is cool, hope y'all enjoy
 

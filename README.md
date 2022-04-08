@@ -16,9 +16,9 @@ Once proposed changed are synced and concise, we will merge changes to master an
 ## set_up
 
 This will go throught the basics needed to:
-1. Set up SSH keys for your local machine to update the repo remotely
-2. Clone the pokemon_stuff repot as a local copy on your machine
-3. Create your own branch and push to the main repot
+1. Setting up SSH Keys
+2. Clone Repo Using SSH
+3. Create your own branch and push to the main repo
 
 ### Setting up SSH Keys
 
@@ -43,13 +43,58 @@ $ ls -al ~/.ssh
 4. copy the SSH file by running:
 
 ```
-pbcopy < ~/.ssh/{your_file_name}.pub
-# Copies the contents of the {your_file_name}.pub file to your clipboard
+pbcopy < ~/.ssh/your_file_name.pub
+# Copies the contents of the your_file_name.pub file to your clipboard
+```
+This will copy the SSH key to your clipboard
+
+5. Add ssh to your github account. 
+  - go to github.com, click on your profile in the top right, and click on settings. 
+
+  ![dropdown to settings](/imgs/settings.png)
+
+  - Navigate to SSH and GPG keys and hit the green New SSH key button
+
+  ![nav to  new ssh key button](/imgs/new_ssh_key.png)
+
+  - Name your SSh key (whatever you want) and past your key in the box. 
+
+  ![nav to add new ssh key](/imgs/add_ssh_keys.png)
+
+Once SSH keys are update you can now clone repos to your machine using SSH. 
+
+### Clone Repo Using SSH
+
+1. Open Terminal
+2. Navigate to the directory where you want to store your code on your machine. 
+  I created a pokemon folder in my Documents folder. 
+  ```
+  cd Documents/pokemon
+  ```
+3. Go to the github repo you want to clone [here](https://github.com/lukeyahtzee/pokemon_stuff). 
+4. Click on the green code button, select SSH, and copy the text that populates.
+
+  ![copy ssh key from repo](/imgs/clone_via_ssh.png)
+
+5. Open Terminal again and enter the below command. 
+This will create a -local- copy of the repository on your machine. 
+```
+git clone paste_text_here
 ```
 
-5. Go to github.com and click on your icon in the top right and go to settings.
+### Create your own branch and push to the main repo
 
-![dropdown to settings](/imgs/settings.png)
+1. Now that you have a local copy of the repo, you can create your own branch by running:
+```
+git checkout -b your-branch-name
+```
 
-6. 
+2. This creates a branch on your -local- copy of the repo. We want it to be added to the main repo, so we need to push our updates. 
 
+``` 
+git push -u origin your-branch-name
+```
+
+3. Once you complete the updates, you can go to the github repo, refresh and see your branch on the Main repo
+
+![see the new branch on the main repo](/imgs//see_new_branch.png)

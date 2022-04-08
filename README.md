@@ -33,21 +33,22 @@ $ ls -al ~/.ssh
 # Lists the files in your .ssh directory, if they exist
 ```
 3. In the ouput check and see if you have any existing keys. (Should be a file called one of the following)
-```
 
+```
 - id_rsa.pub
 - id_ecdsa.pub
 - id_ed25519.pub
 ```
 
 4. copy the SSH file by running:
-```
 
+```
 pbcopy < ~/.ssh/{your_file_name}.pub
 # Copies the contents of the {your_file_name}.pub file to your clipboard
 ```
 
 5. Go to github.com and click on your icon in the top right and go to settings.
+
 ![dropdown to settings](/imgs/settings.png)
 
 6. 

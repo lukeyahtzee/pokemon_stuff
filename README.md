@@ -26,7 +26,7 @@ You can see github's documentation for setting up SSH keys [here](https://docs.g
 
 1. Open your terminal
 
-2. Check to see if you have any SSH keys on your machine already by running 'ls -al ~/.ssh'
+2. Check to see if you have any SSH keys on your machine already by running 'ls -al ~/.ssh
 '''
 
 $ ls -al ~/.ssh

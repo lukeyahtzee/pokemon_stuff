@@ -16,9 +16,9 @@ Once proposed changed are synced and concise, we will merge changes to master an
 ## set_up
 
 This will go throught the basics needed to:
-1. Setting up SSH Keys
-2. Clone Repo Using SSH
-3. Create your own branch and push to the main repo
+1. [Setting up SSH Keys](https://github.com/lukeyahtzee/pokemon_stuff/tree/main#setting-up-ssh-keys)
+2. [Clone Repo Using SSH](https://github.com/lukeyahtzee/pokemon_stuff/tree/main#clone-repo-using-ssh)
+3. [Create your own branch and push to the main repo](https://github.com/lukeyahtzee/pokemon_stuff/tree/main#create-your-own-branch-and-push-to-the-main-repo)
 
 ### Setting up SSH Keys
 

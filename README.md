@@ -1,5 +1,3 @@
-Hello world!  Josh S - making my first comment and commit to the Pokemon Masters project!
-
 # pokemon_stuff
 
 In engineering phase, laying groundwork for later data science insights, battles are conducted by user inputting an enumerated move value

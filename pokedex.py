@@ -10,6 +10,9 @@ def check_pokedex(pokedex, prompt):
                 continue
 
             if val not in pokedex:
+                if val == 'list':
+                    print(pokedex)
+
                 print(
                     'Please choose one of the original 151 Pokemon. Spelling is important.')
                 continue

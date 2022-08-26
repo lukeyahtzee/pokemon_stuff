@@ -14,7 +14,8 @@ def check_pokedex(pokedex, prompt):
                     print(pokedex)
 
                 print(
-                    'Please choose one of the original 151 Pokemon. Spelling is important.')
+                    'Please choose one of the original 151 Pokemon. Spelling is important.',
+                    '\nIf you need help, type: list')
                 continue
             else:
                 break

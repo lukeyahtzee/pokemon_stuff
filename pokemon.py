@@ -25,6 +25,7 @@ class Pokemon():
             str.lower(self.name).strip()+'/'
         self.weaknesses = []
         self.resistances = []
+        self.ineffectives = []
         self.move_dict = {}
         self.get_base_stats()
         self.hp = int(self.base_stats['hp'])
@@ -76,9 +77,14 @@ class Pokemon():
             for k in range(len(type_response_json['damage_relations']['half_damage_from'])):
                 self.resistances.append(
                     type_response_json['damage_relations']['half_damage_from'][k]['name'])
+                
+            for l in range(len(type_response_json['damage_relations']['no_damage_from'])):
+                self.ineffectives.append(
+                    type_response_json['damage_relations']['no_damage_from'][l]['name'])
 
             self.weaknesses = np.unique(np.array(self.weaknesses)).tolist()
             self.resistances = np.unique(np.array(self.resistances)).tolist()
+            self.ineffectives = np.unique(np.array(self.ineffectives)).tolist()
 
     def delete_no_damage(self):
         """

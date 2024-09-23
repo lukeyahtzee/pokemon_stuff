@@ -15,6 +15,7 @@ class Battle():
     def damage_multiplier(self, defending_mon, quicker_mon, move):
         d_resistences = defending_mon.resistances
         d_weaknesses = defending_mon.weaknesses
+        d_ineffectives = defending_mon.ineffectives
         m_type = quicker_mon.move_dict[move].get('type')
         # move_types = set(m_type)
 
@@ -22,6 +23,8 @@ class Battle():
             multiplier = 2
         elif m_type in d_resistences:
             multiplier = .5
+        elif m_type in d_ineffectives:
+            multiplier = 0
         else:
             multiplier = 1
 
@@ -29,11 +32,12 @@ class Battle():
 
     def damage_calc(self, attacking_mon, defending_mon, index):
         """Calculates the actual damage done by selected move during battle"""
-        dmg = int(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power']
-                  * self.damage_multiplier(defending_mon,
+        multiplier = self.damage_multiplier(defending_mon,
                                            attacking_mon,
-                                           list(attacking_mon.moves)[index-1]))
-        return dmg
+                                           list(attacking_mon.moves)[index-1])
+        dmg = int(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power']
+                  * multiplier)
+        return dmg, multiplier
 
     def input_validation(self, prompt):
         """Validates user input for attack choice in battle"""
@@ -68,12 +72,21 @@ class Battle():
 
         print(quicker_mon.name, "used", list(quicker_mon.moves)[index-1])
         time.sleep(1)
+        dmg, multiplier = self.damage_calc(quicker_mon, slower_mon, index)
         print(quicker_mon.name,
               "did",
-              self.damage_calc(quicker_mon, slower_mon, index),
+              dmg,
               "damage!")
 
-        slower_mon.bars -= self.damage_calc(quicker_mon, slower_mon, index)
+        match multiplier:
+            case 2:
+                print("It's super effective!")
+            case 0.5:
+                print("It's not very effective...")
+            case 0:
+                print(f"It doesn't effect the opposing {slower_mon.name}...")
+
+        slower_mon.bars -= dmg
         slower_mon.health = ""
 
         # for i in range(int(slower_mon.bars)):
@@ -95,12 +108,21 @@ class Battle():
 
         print(slower_mon.name, "used", list(slower_mon.moves)[index-1])
         time.sleep(1)
+        dmg, multiplier = self.damage_calc(slower_mon, quicker_mon, index)
         print(slower_mon.name,
               "did",
-              self.damage_calc(slower_mon, quicker_mon, index),
+              dmg,
               "damage!")
 
-        quicker_mon.bars -= self.damage_calc(slower_mon, quicker_mon, index)
+        match multiplier:
+            case 2:
+                print("It's super effective!")
+            case 0.5:
+                print("It's not very effective...")
+            case 0:
+                print(f"It doesn't effect the opposing {quicker_mon.name}...")
+
+        quicker_mon.bars -= dmg
         quicker_mon.health = ""
 
         # for i in range(int(quicker_mon.bars)):

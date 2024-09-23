@@ -94,6 +94,16 @@ This will create a -local- copy of the repository on your machine.
 ```
 git clone paste_text_here
 ```
+### Create environment
+
+1. Assuming you have conda installed, and are in the local repo create the environment. (if you don't see the environment.yml file in your current directory use `cd` to navigate into the correct location.)
+
+```
+conda create --file environment.yml
+```
+2. Answer yes when it asks to install the packages. 
+3. Once it is done, activate the environment by running `conda activate pokemon`
+4. When you are done, run `conda deactivate` to close out the environment and prevent the installing unnecessary packages. 
 
 ### Create your own branch and push to the main repo
 

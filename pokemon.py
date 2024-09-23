@@ -49,7 +49,10 @@ class Pokemon():
         # randomly selects 8 out of all moves available
         # 8 because some moves have 0 attack which is lame
         # and I want to filter down to 4 useable moves
-        move_index = random.sample(range(num_of_moves), 8)
+        if num_of_moves > 8:
+            move_index = random.sample(range(num_of_moves), 8)
+        else:
+            move_index = range(num_of_moves)
 
         for i in move_index:
             self.moves.append(
@@ -95,7 +98,8 @@ class Pokemon():
             if self.move_dict[m]['power'] == 0:
                 del_list.append(m)
         for n in del_list:
-            del self.move_dict[n]
+            if len(self.move_dict) > 1:
+                del self.move_dict[n]
 
         # remove excess moves from move_dict
         for k, v in enumerate(self.move_dict.copy()):

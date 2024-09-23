@@ -99,7 +99,7 @@ git clone paste_text_here
 1. Assuming you have conda installed, and are in the local repo create the environment. (if you don't see the environment.yml file in your current directory use `cd` to navigate into the correct location.)
 
 ```
-conda create --file environment.yml
+conda create -n pokemon --file environment.yml
 ```
 2. Answer yes when it asks to install the packages. 
 3. Once it is done, activate the environment by running `conda activate pokemon`

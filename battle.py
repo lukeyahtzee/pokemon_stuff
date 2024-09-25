@@ -19,14 +19,20 @@ class Battle():
         m_type = quicker_mon.move_dict[move].get('type')
         # move_types = set(m_type)
 
+        multiplier = 1
+        # allow for case when a move is both a weakness and resistance
+        #   of a multityped pokemon
+
         if m_type in d_weaknesses:
             multiplier = 2
-        elif m_type in d_resistences:
+        if m_type in d_resistences:
             multiplier = .5
-        elif m_type in d_ineffectives:
+        if m_type in d_ineffectives:
             multiplier = 0
-        else:
-            multiplier = 1
+
+        if m_type in quicker_mon.types:
+            # stab
+            multiplier *= 1.5
 
         return multiplier
 
@@ -59,10 +65,16 @@ class Battle():
                 break
 
         return val
+    
+    def check_miss(self, acc):
+        missed = False
+        if random.randrange(0, 100) > acc:
+            missed = True
+        return missed
+
 
     def battle_turn1(self, quicker_mon, slower_mon):
         print("Go", quicker_mon.name, "!")
-
         for i, x in enumerate(quicker_mon.moves):
             print(
                 i+1, x, f"--- does {quicker_mon.move_dict[x]['power']} damage")
@@ -71,20 +83,31 @@ class Battle():
         index = self.input_validation("Pick a move: ")
 
         print(quicker_mon.name, "used", list(quicker_mon.moves)[index-1])
-        time.sleep(1)
-        dmg, multiplier = self.damage_calc(quicker_mon, slower_mon, index)
-        print(quicker_mon.name,
-              "did",
-              dmg,
-              "damage!")
 
-        match multiplier:
-            case 2:
-                print("It's super effective!")
-            case 0.5:
-                print("It's not very effective...")
-            case 0:
-                print(f"It doesn't effect the opposing {slower_mon.name}...")
+        acc = quicker_mon.move_dict[list(quicker_mon.moves)[index-1]]['accuracy']
+        miss = False
+        if acc:
+            miss = self.check_miss(quicker_mon.move_dict[list(quicker_mon.moves)[index-1]]['accuracy'])
+
+        time.sleep(1)
+        if miss:
+            print(f"{slower_mon.name} avoided the attack!")
+            dmg = 0
+        
+        else:
+            dmg, multiplier = self.damage_calc(quicker_mon, slower_mon, index)
+            print(quicker_mon.name,
+                "did",
+                dmg,
+                "damage!")
+
+            match multiplier:
+                case 2:
+                    print("It's super effective!")
+                case 0.5:
+                    print("It's not very effective...")
+                case 0:
+                    print(f"It doesn't effect the opposing {slower_mon.name}...")
 
         slower_mon.bars -= dmg
         slower_mon.health = ""
@@ -107,20 +130,31 @@ class Battle():
         index = self.input_validation("Pick a move: ")
 
         print(slower_mon.name, "used", list(slower_mon.moves)[index-1])
-        time.sleep(1)
-        dmg, multiplier = self.damage_calc(slower_mon, quicker_mon, index)
-        print(slower_mon.name,
-              "did",
-              dmg,
-              "damage!")
 
-        match multiplier:
-            case 2:
-                print("It's super effective!")
-            case 0.5:
-                print("It's not very effective...")
-            case 0:
-                print(f"It doesn't effect the opposing {quicker_mon.name}...")
+        acc = slower_mon.move_dict[list(slower_mon.moves)[index-1]]['accuracy']
+        miss = False
+        if acc:
+            miss = self.check_miss(slower_mon.move_dict[list(slower_mon.moves)[index-1]]['accuracy'])
+
+        time.sleep(1)
+        if miss:
+            print(f"{quicker_mon.name} avoided the attack!")
+            dmg = 0
+        
+        else:
+            dmg, multiplier = self.damage_calc(slower_mon, quicker_mon, index)
+            print(slower_mon.name,
+                "did",
+                dmg,
+                "damage!")
+
+            match multiplier:
+                case 2:
+                    print("It's super effective!")
+                case 0.5:
+                    print("It's not very effective...")
+                case 0:
+                    print(f"It doesn't effect the opposing {quicker_mon.name}...")
 
         quicker_mon.bars -= dmg
         quicker_mon.health = ""

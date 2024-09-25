@@ -118,8 +118,9 @@ class Pokemon():
             response_json = self.api_call(url)
 
             move_type = response_json['type']['name']
+            move_accuracy = response_json['accuracy']
             move_power = 0 if response_json['power'] == None else response_json['power'] // 10
-            self.move_dict[move] = {'type': move_type, 'power': move_power}
+            self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy}
 
         self.delete_no_damage()
 
@@ -130,8 +131,9 @@ class Pokemon():
         response_json = self.api_call(url)
 
         move_type = response_json['type']['name']
+        move_accuracy = response_json['accuracy']
         move_power = 0 if response_json['power'] == None else response_json['power'] // 10
-        self.move_dict[move] = {'type': move_type, 'power': move_power}
+        self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy}
 
     def get_attrs(self):
         """Retrieves all the pokemons attributes to prepare for battle"""

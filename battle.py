@@ -41,8 +41,16 @@ class Battle():
         multiplier = self.damage_multiplier(defending_mon,
                                            attacking_mon,
                                            list(attacking_mon.moves)[index-1])
+        
+        atk_def_mult = 1
+        if attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['damage_class'] == 'special':
+            atk_def_mult = attacking_mon.special_attack / defending_mon.special_defense
+        else:
+            atk_def_mult = attacking_mon.attack / defending_mon.defense
+
+        print(atk_def_mult)
         dmg = int(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power']
-                  * multiplier)
+                  * multiplier * atk_def_mult)
         return dmg, multiplier
 
     def input_validation(self, prompt):

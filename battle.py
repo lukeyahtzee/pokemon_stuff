@@ -30,15 +30,17 @@ class Battle():
         if m_type in d_ineffectives:
             multiplier = 0
 
+        stab = 1
+
         if m_type in quicker_mon.types:
             # stab
-            multiplier *= 1.5
+            stab = 1.5
 
-        return multiplier
+        return multiplier, stab
 
     def damage_calc(self, attacking_mon, defending_mon, index):
         """Calculates the actual damage done by selected move during battle"""
-        multiplier = self.damage_multiplier(defending_mon,
+        multiplier, stab = self.damage_multiplier(defending_mon,
                                            attacking_mon,
                                            list(attacking_mon.moves)[index-1])
         
@@ -47,10 +49,8 @@ class Battle():
             atk_def_mult = attacking_mon.special_attack / defending_mon.special_defense
         else:
             atk_def_mult = attacking_mon.attack / defending_mon.defense
-
-        print(atk_def_mult)
         dmg = int(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power']
-                  * multiplier * atk_def_mult)
+                  * multiplier * stab * atk_def_mult)
         return dmg, multiplier
 
     def input_validation(self, prompt):

@@ -16,19 +16,18 @@ class Battle():
         d_resistences = defending_mon.resistances
         d_weaknesses = defending_mon.weaknesses
         d_ineffectives = defending_mon.ineffectives
+
         m_type = quicker_mon.move_dict[move].get('type')
-        # move_types = set(m_type)
 
         multiplier = 1
-        # allow for case when a move is both a weakness and resistance
-        #   of a multityped pokemon
 
+        # this method allows 4x or .25x type multiplier
         if m_type in d_weaknesses:
-            multiplier = 2
+            multiplier *= (2 * d_weaknesses.count(m_type))
         if m_type in d_resistences:
-            multiplier = .5
+            multiplier *= (0.5 * d_resistences.count(m_type))
         if m_type in d_ineffectives:
-            multiplier = 0
+            multiplier *= 0
 
         stab = 1
 
@@ -110,9 +109,9 @@ class Battle():
                 "damage!")
 
             match multiplier:
-                case 2:
+                case 2 | 4:
                     print("It's super effective!")
-                case 0.5:
+                case 0.5 | 0.25:
                     print("It's not very effective...")
                 case 0:
                     print(f"It doesn't effect the opposing {slower_mon.name}...")

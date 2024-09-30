@@ -69,14 +69,17 @@ class Pokemon():
     def factors(self):
         """Finds the weaknesses and resistance types for this Pokemon"""
         self.poke_types()
-        for i in self.types:
+
+        # assuming that there's a max of 2 types per pokemon, I think this is true
+        # make an array for both pokemon types to allow for 4x or .25x multiplied moves
+        for index, i in enumerate(self.types):
             type_url = 'https://pokeapi.co/api/v2/type/'+i+'/'
             type_response_json = self.api_call(type_url)
 
             for j in range(len(type_response_json['damage_relations']['double_damage_from'])):
                 self.weaknesses.append(
                     type_response_json['damage_relations']['double_damage_from'][j]['name'])
-
+                    
             for k in range(len(type_response_json['damage_relations']['half_damage_from'])):
                 self.resistances.append(
                     type_response_json['damage_relations']['half_damage_from'][k]['name'])

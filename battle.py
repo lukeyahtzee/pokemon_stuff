@@ -84,7 +84,7 @@ class Battle():
         print("Go", quicker_mon.name, "!")
         for i, x in enumerate(quicker_mon.moves):
             print(
-                i+1, x, f"--- does {quicker_mon.move_dict[x]['power']} damage")
+                i+1, x, f"--- {quicker_mon.move_dict[x]['power']} power")
 
         print('\n')
         index = self.input_validation("Pick a move: ")
@@ -131,7 +131,7 @@ class Battle():
         print("Go", slower_mon.name, "!")
         for i, x in enumerate(slower_mon.moves):
             print(
-                i+1, x, f"--- does {slower_mon.move_dict[x]['power']} damage")
+                i+1, x, f"--- {slower_mon.move_dict[x]['power']} power")
 
         print('\n')
         index = self.input_validation("Pick a move: ")

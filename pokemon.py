@@ -57,6 +57,38 @@ class Pokemon():
         for i in move_index:
             self.moves.append(
                 response_json['moves'][i]['move']['name'])
+            
+    def get_attacking_moves(self, num):
+        """Get extra attacking moves in case there's less than 4"""
+        response_json = self.api_call(self.pokemon_url)
+        num_of_moves = len(response_json['moves'])
+
+        count = 0
+        move_index = list(range(0, num_of_moves))
+        random.shuffle(move_index)
+        for i in move_index:
+            print("getting extra moves", i)
+            if count >= num:
+                break
+            if response_json['moves'][i]['move']['name'] not in self.moves:
+                move = response_json['moves'][i]['move']['name'].replace(' ', '-').lower()
+                url = 'https://pokeapi.co/api/v2/move/'+move+'/'
+                move_response = self.api_call(url)
+                if move_response['power'] != None and move_response['power'] != 0:
+                    count += 1
+                    self.manual_add_move(move)
+
+    def manual_add_move(self, move):
+        """Adds a found move into move_dict[] using api call."""
+        url = 'https://pokeapi.co/api/v2/move/'+move+'/'
+        response_json = self.api_call(url)
+
+        move_type = response_json['type']['name']
+        damage_class = response_json['damage_class']['name']
+        move_accuracy = response_json['accuracy']
+        move_power = 0 if response_json['power'] == None else response_json['power'] // 10
+        self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
+                                'damage_class': damage_class}
 
     def poke_types(self):
         """Updates types list for the Pokemon's type(s)"""
@@ -109,25 +141,11 @@ class Pokemon():
             if k > 3:
                 del self.move_dict[v]
 
+        if len(self.move_dict) < 4:
+            self.get_attacking_moves(4 - len(self.move_dict))
+
         # remove the extra moves from moves
         self.moves = self.move_dict.keys()
-
-    def move_info(self):
-        """Finds type and power attributes for each of the pokemons moves.  The results
-        fill in the move_dict attribute. """
-        for moves in self.moves:
-            move = moves.replace(' ', '-').lower()
-            url = 'https://pokeapi.co/api/v2/move/'+move+'/'
-            response_json = self.api_call(url)
-
-            move_type = response_json['type']['name']
-            damage_class = response_json['damage_class']['name']
-            move_accuracy = response_json['accuracy']
-            move_power = 0 if response_json['power'] == None else response_json['power'] // 10
-            self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
-                                    'damage_class': damage_class}
-
-        self.delete_no_damage()
 
     def get_move_info(self, move):
         """Same as move_info but without the loop. To be used with the concurrent.futures module"""

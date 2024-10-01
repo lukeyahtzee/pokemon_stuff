@@ -67,7 +67,6 @@ class Pokemon():
         move_index = list(range(0, num_of_moves))
         random.shuffle(move_index)
         for i in move_index:
-            print("getting extra moves", i)
             if count >= num:
                 break
             if response_json['moves'][i]['move']['name'] not in self.moves:

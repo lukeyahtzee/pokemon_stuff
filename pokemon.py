@@ -5,6 +5,8 @@ import pandas as pd
 import concurrent.futures
 import random
 
+AVG_GEN1_HP = 64.2119
+
 
 class Pokemon():
     """
@@ -19,8 +21,12 @@ class Pokemon():
         self.name = name
         self.types = []
         self.moves = []
+        # scale health by finding average base hp and giving a balanced boost/cut to pokemon based on their base hp
+        # also need to just increase health in general after type bonuses were added
+        # also can add crit bonuses if I get bored
         self.health = '=========='
         self.bars = 30
+        self.max_bars = 0
         self.pokemon_url = 'https://pokeapi.co/api/v2/pokemon/' + \
             str.lower(self.name).strip()+'/'
         self.weaknesses = []
@@ -176,6 +182,10 @@ class Pokemon():
 
         stats_num = [x['base_stat'] for x in data['stats']]
         stats = [x['stat']['name'] for x in data['stats']]
+
+        hp = stats_num[0]
+        self.bars = self.bars + (hp - AVG_GEN1_HP)/5
+        self.max_bars = self.bars
 
         name = data['forms'][0]['name']
         # target = stats.index('special-attack')

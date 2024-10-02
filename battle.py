@@ -43,14 +43,22 @@ class Battle():
                                            attacking_mon,
                                            list(attacking_mon.moves)[index-1])
         
+        crit = False
         atk_def_mult = 1
+
         if attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['damage_class'] == 'special':
             atk_def_mult = attacking_mon.special_attack / defending_mon.special_defense
         else:
             atk_def_mult = attacking_mon.attack / defending_mon.defense
+
         dmg = int(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power']
                   * multiplier * stab * atk_def_mult)
-        return dmg, multiplier
+        
+        if random.randrange(256) < attacking_mon.crit_val and multiplier != 0:
+            crit = True
+            dmg = int(dmg * 1.5)
+        
+        return dmg, multiplier, crit
 
     def input_validation(self, prompt):
         """Validates user input for attack choice in battle"""
@@ -102,12 +110,7 @@ class Battle():
             dmg = 0
         
         else:
-            dmg, multiplier = self.damage_calc(quicker_mon, slower_mon, index)
-            crit = False
-
-            if random.randrange(256) < quicker_mon.crit_val and multiplier != 0:
-                crit = True
-                dmg = int(dmg * 1.5)
+            dmg, multiplier, crit = self.damage_calc(quicker_mon, slower_mon, index)
 
             print(quicker_mon.name,
                 "did",
@@ -158,12 +161,7 @@ class Battle():
             dmg = 0
         
         else:
-            dmg, multiplier = self.damage_calc(slower_mon, quicker_mon, index)
-            crit = False
-
-            if random.randrange(256) < quicker_mon.crit_val:
-                crit = True
-                dmg = int(dmg * 1.5)
+            dmg, multiplier, crit = self.damage_calc(slower_mon, quicker_mon, index)
     
             print(slower_mon.name,
                 "did",
@@ -174,9 +172,9 @@ class Battle():
                 print("A critical hit!")
 
             match multiplier:
-                case 2:
+                case 2 | 4:
                     print("It's super effective!")
-                case 0.5:
+                case 0.5 | 0.25:
                     print("It's not very effective...")
                 case 0:
                     print(f"It doesn't effect the opposing {quicker_mon.name}...")

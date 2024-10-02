@@ -28,6 +28,7 @@ class Pokemon():
         self.health = '=========='
         self.bars = 30
         self.max_bars = 0
+        self.level = 50
         self.pokemon_url = 'https://pokeapi.co/api/v2/pokemon/' + \
             str.lower(self.name).strip()+'/'
         self.weaknesses = []
@@ -187,7 +188,7 @@ class Pokemon():
         stats = [x['stat']['name'] for x in data['stats']]
 
         hp = stats_num[0]
-        self.bars = self.bars + (hp - AVG_GEN1_HP)/5
+        self.bars = hp
         self.max_bars = self.bars
 
         name = data['forms'][0]['name']

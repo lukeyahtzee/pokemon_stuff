@@ -43,7 +43,7 @@ class Battle():
                                            attacking_mon,
                                            list(attacking_mon.moves)[index-1])
         
-        crit = False
+        crit = 1
         atk_def_mult = 1
 
         if attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['damage_class'] == 'special':
@@ -51,13 +51,15 @@ class Battle():
         else:
             atk_def_mult = attacking_mon.attack / defending_mon.defense
 
-        dmg = int(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power']
-                  * multiplier * stab * atk_def_mult)
-        
         if random.randrange(256) < attacking_mon.crit_val and multiplier != 0:
-            crit = True
-            dmg = int(dmg * 1.5)
+            crit = 2
         
+        dmg = (((2*attacking_mon.level*crit) / 5 + 2)
+                * attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] * atk_def_mult) / 50 + 2
+        dmg *= stab
+        dmg *= multiplier
+        dmg = int(dmg * random.randrange(217, 256) / 255)
+
         return dmg, multiplier, crit
 
     def input_validation(self, prompt):
@@ -117,7 +119,7 @@ class Battle():
                 dmg,
                 "damage!")
             
-            if crit:
+            if crit == 2:
                 print("A critical hit!")
 
             match multiplier:
@@ -133,7 +135,7 @@ class Battle():
 
         # for i in range(int(slower_mon.bars)):
         #     slower_mon.health += "="
-        slower_mon.health = '=' * round(slower_mon.bars / 3)
+        slower_mon.health = '=' * round((slower_mon.bars / slower_mon.max_bars) * 10)
 
         print('\n')
         print(quicker_mon.name, "health:", quicker_mon.health)
@@ -168,7 +170,7 @@ class Battle():
                 dmg,
                 "damage!")
             
-            if crit:
+            if crit == 2:
                 print("A critical hit!")
 
             match multiplier:
@@ -184,7 +186,7 @@ class Battle():
 
         # for i in range(int(quicker_mon.bars)):
         #     quicker_mon.health += "="
-        quicker_mon.health = '=' * round(quicker_mon.bars / 3)
+        quicker_mon.health = '=' * round((quicker_mon.bars / quicker_mon.max_bars) * 10)
 
         print('\n')
         print(slower_mon.name, "health:", slower_mon.health)

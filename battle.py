@@ -103,10 +103,19 @@ class Battle():
         
         else:
             dmg, multiplier = self.damage_calc(quicker_mon, slower_mon, index)
+            crit = False
+
+            if random.randrange(256) < quicker_mon.crit_val and multiplier != 0:
+                crit = True
+                dmg = int(dmg * 1.5)
+
             print(quicker_mon.name,
                 "did",
                 dmg,
                 "damage!")
+            
+            if crit:
+                print("A critical hit!")
 
             match multiplier:
                 case 2 | 4:
@@ -150,10 +159,19 @@ class Battle():
         
         else:
             dmg, multiplier = self.damage_calc(slower_mon, quicker_mon, index)
+            crit = False
+
+            if random.randrange(256) < quicker_mon.crit_val:
+                crit = True
+                dmg = int(dmg * 1.5)
+    
             print(slower_mon.name,
                 "did",
                 dmg,
                 "damage!")
+            
+            if crit:
+                print("A critical hit!")
 
             match multiplier:
                 case 2:

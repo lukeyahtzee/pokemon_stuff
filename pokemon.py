@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import concurrent.futures
 import random
+import math
 
 AVG_GEN1_HP = 64.2119
 
@@ -40,6 +41,7 @@ class Pokemon():
         self.special_attack = int(self.base_stats['special-attack'].iloc[0])
         self.special_defense = int(self.base_stats['special-defense'].iloc[0])
         self.speed = int(self.base_stats['speed'].iloc[0])
+        self.crit_rate = 0
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""
@@ -170,6 +172,7 @@ class Pokemon():
         self.get_moves()
         self.poke_types()
         self.factors()
+        self.crit_val = math.floor(self.speed / 2)
         # self.move_info
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.get_move_info, self.moves)

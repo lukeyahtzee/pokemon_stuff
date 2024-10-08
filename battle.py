@@ -1,6 +1,7 @@
 import random
 import time
 import sys
+import math
 
 
 class Battle():
@@ -21,7 +22,8 @@ class Battle():
 
         multiplier = 1
 
-        # this method allows 4x or .25x type multiplier
+        # this method allows 4x or .25x type multiplier if move -
+        # type is a weakness/resistance of both the defending mons type
         if m_type in d_weaknesses:
             multiplier *= (2 * d_weaknesses.count(m_type))
         if m_type in d_resistences:
@@ -32,7 +34,7 @@ class Battle():
         stab = 1
 
         if m_type in quicker_mon.types:
-            # stab
+            # same type attack bonus is 1.5
             stab = 1.5
 
         return multiplier, stab
@@ -51,14 +53,13 @@ class Battle():
         else:
             atk_def_mult = attacking_mon.attack / defending_mon.defense
 
-        if random.randrange(256) < attacking_mon.crit_val and multiplier != 0:
+        if random.randint(0, 255) < attacking_mon.crit_val and multiplier != 0:
             crit = 2
         
         dmg = (((2*attacking_mon.level*crit) / 5 + 2)
                 * attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] * atk_def_mult) / 50 + 2
-        dmg *= stab
-        dmg *= multiplier
-        dmg = int(dmg * random.randrange(217, 256) / 255)
+        dmg *= (stab * multiplier)
+        dmg = int(dmg * random.randint(217, 255) / 255) # random multiplier
 
         return dmg, multiplier, crit
 
@@ -84,8 +85,9 @@ class Battle():
         return val
     
     def check_miss(self, acc):
+        """Random roll to determine if move misses or hits"""
         missed = False
-        if random.randrange(0, 100) > acc:
+        if random.randint(0, 100) > acc:
             missed = True
         return missed
 
@@ -135,7 +137,7 @@ class Battle():
 
         # for i in range(int(slower_mon.bars)):
         #     slower_mon.health += "="
-        slower_mon.health = '=' * round((slower_mon.bars / slower_mon.max_bars) * 10)
+        slower_mon.health = '=' * math.ceil((slower_mon.bars / slower_mon.max_bars) * 10)
 
         print('\n')
         print(quicker_mon.name, "health:", quicker_mon.health)
@@ -186,7 +188,7 @@ class Battle():
 
         # for i in range(int(quicker_mon.bars)):
         #     quicker_mon.health += "="
-        quicker_mon.health = '=' * round((quicker_mon.bars / quicker_mon.max_bars) * 10)
+        quicker_mon.health = '=' * math.ceil((quicker_mon.bars / quicker_mon.max_bars) * 10)
 
         print('\n')
         print(slower_mon.name, "health:", slower_mon.health)

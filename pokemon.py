@@ -22,9 +22,6 @@ class Pokemon():
         self.name = name
         self.types = []
         self.moves = []
-        # scale health by finding average base hp and giving a balanced boost/cut to pokemon based on their base hp
-        # also need to just increase health in general after type bonuses were added
-        # also can add crit bonuses if I get bored
         self.health = '=========='
         self.bars = 30
         self.max_bars = 0
@@ -84,19 +81,12 @@ class Pokemon():
                 move_response = self.api_call(url)
                 if move_response['power'] != None and move_response['power'] != 0:
                     count += 1
-                    self.manual_add_move(move)
-
-    def manual_add_move(self, move):
-        """Adds a found move into move_dict[] using api call."""
-        url = 'https://pokeapi.co/api/v2/move/'+move+'/'
-        response_json = self.api_call(url)
-
-        move_type = response_json['type']['name']
-        damage_class = response_json['damage_class']['name']
-        move_accuracy = response_json['accuracy']
-        move_power = 0 if response_json['power'] == None else response_json['power'] // 10
-        self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
-                                'damage_class': damage_class}
+                    move_type = move_response['type']['name']
+                    damage_class = move_response['damage_class']['name']
+                    move_accuracy = move_response['accuracy']
+                    move_power = 0 if move_response['power'] == None else move_response['power'] // 10
+                    self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
+                                            'damage_class': damage_class}
 
     def poke_types(self):
         """Updates types list for the Pokemon's type(s)"""

@@ -12,13 +12,15 @@ class Battle():
         self.delay_print('LOADING...')
         self.pokemon1.get_attrs()
         self.pokemon2.get_attrs()
+        self.attacking_mon = None
+        self.defending_mon = None
 
-    def damage_multiplier(self, defending_mon, quicker_mon, move):
+    def damage_multiplier(self, defending_mon, attacking_mon, move):
         d_resistences = defending_mon.resistances
         d_weaknesses = defending_mon.weaknesses
         d_ineffectives = defending_mon.ineffectives
 
-        m_type = quicker_mon.move_dict[move].get('type')
+        m_type = attacking_mon.move_dict[move].get('type')
 
         multiplier = 1
 
@@ -33,7 +35,7 @@ class Battle():
 
         stab = 1
 
-        if m_type in quicker_mon.types:
+        if m_type in attacking_mon.types:
             # same type attack bonus is 1.5
             stab = 1.5
 
@@ -55,13 +57,17 @@ class Battle():
 
         if random.randint(0, 255) < attacking_mon.crit_val and multiplier != 0:
             crit = 2
-        
-        dmg = (((2*attacking_mon.level*crit) / 5 + 2)
-                * attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] * atk_def_mult) / 50 + 2
-        dmg *= (stab * multiplier)
-        dmg = int(dmg * random.randint(217, 255) / 255) # random multiplier
+
+        dmg = self.damage_math(attacking_mon.level, crit, attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'],
+                                 atk_def_mult, stab, multiplier)
 
         return dmg, multiplier, crit
+
+    def damage_math(self, level, crit, power, atk_def_mult, stab, type_multiplier):
+        dmg = (((2*level*crit) / 5 + 2)
+            * power * atk_def_mult) / 50 + 2
+        dmg *= (stab * type_multiplier)
+        return int(dmg * random.randint(217, 255) / 255) # random multiplier
 
     def input_validation(self, prompt):
         """Validates user input for attack choice in battle"""
@@ -92,31 +98,31 @@ class Battle():
         return missed
 
 
-    def battle_turn1(self, quicker_mon, slower_mon):
-        print("Go", quicker_mon.name, "!")
-        for i, x in enumerate(quicker_mon.moves):
+    def battle_turn(self, attacking_mon, defending_mon):
+        print("Go", attacking_mon.name, "!")
+        for i, x in enumerate(attacking_mon.moves):
             print(
-                i+1, x, f"--- {quicker_mon.move_dict[x]['power']} power, {quicker_mon.move_dict[x]['type']}")
+                i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
 
         print('\n')
         index = self.input_validation("Pick a move: ")
 
-        print(quicker_mon.name, "used", list(quicker_mon.moves)[index-1])
+        print(attacking_mon.name, "used", list(attacking_mon.moves)[index-1])
 
-        acc = quicker_mon.move_dict[list(quicker_mon.moves)[index-1]]['accuracy']
+        acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
         miss = False
         if acc:
-            miss = self.check_miss(quicker_mon.move_dict[list(quicker_mon.moves)[index-1]]['accuracy'])
+            miss = self.check_miss(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'])
 
         time.sleep(1)
         if miss:
-            print(f"{slower_mon.name} avoided the attack!")
+            print(f"{defending_mon.name} avoided the attack!")
             dmg = 0
         
         else:
-            dmg, multiplier, crit = self.damage_calc(quicker_mon, slower_mon, index)
+            dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
 
-            print(quicker_mon.name,
+            print(attacking_mon.name,
                 "did",
                 dmg,
                 "damage!")
@@ -130,69 +136,18 @@ class Battle():
                 case 0.5 | 0.25:
                     print("It's not very effective...")
                 case 0:
-                    print(f"It doesn't effect the opposing {slower_mon.name}...")
+                    print(f"It doesn't effect the opposing {defending_mon.name}...")
 
-        slower_mon.bars -= dmg
-        slower_mon.health = ""
+        defending_mon.bars -= dmg
+        defending_mon.health = ""
 
-        # for i in range(int(slower_mon.bars)):
-        #     slower_mon.health += "="
-        slower_mon.health = '=' * math.ceil((slower_mon.bars / slower_mon.max_bars) * 10)
-
-        print('\n')
-        print(quicker_mon.name, "health:", quicker_mon.health)
-        print(slower_mon.name, "health:", slower_mon.health, '\n')
-
-    def battle_turn2(self, quicker_mon, slower_mon):
-        print("Go", slower_mon.name, "!")
-        for i, x in enumerate(slower_mon.moves):
-            print(
-                i+1, x, f"--- {slower_mon.move_dict[x]['power']} power, {slower_mon.move_dict[x]['type']}")
+        # for i in range(int(defending_mon.bars)):
+        #     defending_mon.health += "="
+        defending_mon.health = '=' * math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
 
         print('\n')
-        index = self.input_validation("Pick a move: ")
-
-        print(slower_mon.name, "used", list(slower_mon.moves)[index-1])
-
-        acc = slower_mon.move_dict[list(slower_mon.moves)[index-1]]['accuracy']
-        miss = False
-        if acc:
-            miss = self.check_miss(slower_mon.move_dict[list(slower_mon.moves)[index-1]]['accuracy'])
-
-        time.sleep(1)
-        if miss:
-            print(f"{quicker_mon.name} avoided the attack!")
-            dmg = 0
-        
-        else:
-            dmg, multiplier, crit = self.damage_calc(slower_mon, quicker_mon, index)
-    
-            print(slower_mon.name,
-                "did",
-                dmg,
-                "damage!")
-            
-            if crit == 2:
-                print("A critical hit!")
-
-            match multiplier:
-                case 2 | 4:
-                    print("It's super effective!")
-                case 0.5 | 0.25:
-                    print("It's not very effective...")
-                case 0:
-                    print(f"It doesn't effect the opposing {quicker_mon.name}...")
-
-        quicker_mon.bars -= dmg
-        quicker_mon.health = ""
-
-        # for i in range(int(quicker_mon.bars)):
-        #     quicker_mon.health += "="
-        quicker_mon.health = '=' * math.ceil((quicker_mon.bars / quicker_mon.max_bars) * 10)
-
-        print('\n')
-        print(slower_mon.name, "health:", slower_mon.health)
-        print(quicker_mon.name, "health:", quicker_mon.health, '\n')
+        print(self.pokemon1.name, "health:", self.pokemon1.health)
+        print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
 
     def delay_print(self, s):
         for c in s:
@@ -213,25 +168,22 @@ class Battle():
     # evaluate speed of pokemon
 
         while self.pokemon1.speed > self.pokemon2.speed == True:
-            quicker_mon = self.pokemon1
-            slower_mon = self.pokemon2
+            self.attacking_mon = self.pokemon1
+            self.defending_mon = self.pokemon2
 
         else:
-            slower_mon = self.pokemon1
-            quicker_mon = self.pokemon2
+            self.defending_mon = self.pokemon1
+            self.attacking_mon = self.pokemon2
 
-        while (quicker_mon.bars > 0) and (slower_mon.bars > 0):
+        while (self.pokemon1.bars > 0) and (self.pokemon2.bars > 0):
 
-            self.battle_turn1(quicker_mon, slower_mon)
+            self.battle_turn(self.attacking_mon, self.defending_mon)
 
-            if slower_mon.bars <= 0:
-                self.delay_print("\n..." + slower_mon.name + ' fainted.')
+            if self.defending_mon.bars <= 0:
+                self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
                 break
 
         # mirroring the attack pattern of the quicker mon but for the slower mon
-
-            self.battle_turn2(quicker_mon, slower_mon)
-
-            if quicker_mon.bars <= 0:
-                self.delay_print("\n..." + quicker_mon.name + ' fainted.')
-                break
+            temp_mon = self.attacking_mon
+            self.attacking_mon = self.defending_mon
+            self.defending_mon = temp_mon

@@ -2,6 +2,7 @@ import random
 import time
 import sys
 import math
+from status import status_effect_calc
 
 
 class Battle():
@@ -14,6 +15,7 @@ class Battle():
         self.pokemon2.get_attrs()
         self.attacking_mon = None
         self.defending_mon = None
+        self.bottom_of_turn = False
 
     def damage_multiplier(self, defending_mon, attacking_mon, move):
         d_resistences = defending_mon.resistances
@@ -62,6 +64,7 @@ class Battle():
                                  atk_def_mult, stab, multiplier)
 
         return dmg, multiplier, crit
+
 
     def damage_math(self, level, crit, power, atk_def_mult, stab, type_multiplier):
         dmg = (((2*level*crit) / 5 + 2)
@@ -113,12 +116,25 @@ class Battle():
         miss = False
         if acc:
             miss = self.check_miss(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'])
-
+        
         time.sleep(1)
-        if miss:
-            print(f"{defending_mon.name} avoided the attack!")
+
+        if attacking_mon.condition == 'plz' and random.randint(0, 100) < 25:
+            print(f"{attacking_mon.name} is paralyzed! It can't move!")
+            dmg = 0
+
+        elif attacking_mon.condition == 'slp':
+            print(f"{attacking_mon.name} is fast asleep.")
             dmg = 0
         
+        elif miss:
+            print(f"{defending_mon.name} avoided the attack!")
+            dmg = 0
+
+        elif attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0:
+            status_effect_calc(attacking_mon, defending_mon, index)
+            dmg = 0
+
         else:
             dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
 
@@ -145,9 +161,19 @@ class Battle():
         #     defending_mon.health += "="
         defending_mon.health = '=' * math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
 
+        if self.bottom_of_turn:
+            if defending_mon.condition == 'psn':
+                defending_mon.bars -= (1/16)*defending_mon.max_bars
+                print(f"\n{defending_mon.name} is hurt by poison!")
+            if attacking_mon.condition == 'psn':
+                attacking_mon.bars -= (1/16)*attacking_mon.max_bars
+                print(f"\n{attacking_mon.name} is hurt by poison!")
+
         print('\n')
         print(self.pokemon1.name, "health:", self.pokemon1.health)
         print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
+
+        self.bottom_of_turn = not self.bottom_of_turn
 
     def delay_print(self, s):
         for c in s:

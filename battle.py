@@ -57,13 +57,17 @@ class Battle():
 
         if random.randint(0, 255) < attacking_mon.crit_val and multiplier != 0:
             crit = 2
-        
-        dmg = (((2*attacking_mon.level*crit) / 5 + 2)
-                * attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] * atk_def_mult) / 50 + 2
-        dmg *= (stab * multiplier)
-        dmg = int(dmg * random.randint(217, 255) / 255) # random multiplier
+
+        dmg = self.damage_math(attacking_mon.level, crit, attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'],
+                                 atk_def_mult, stab, multiplier)
 
         return dmg, multiplier, crit
+
+    def damage_math(self, level, crit, power, atk_def_mult, stab, type_multiplier):
+        dmg = (((2*level*crit) / 5 + 2)
+            * power * atk_def_mult) / 50 + 2
+        dmg *= (stab * type_multiplier)
+        return int(dmg * random.randint(217, 255) / 255) # random multiplier
 
     def input_validation(self, prompt):
         """Validates user input for attack choice in battle"""

@@ -32,6 +32,8 @@ class Pokemon():
         self.ineffectives = []
         self.move_dict = {}
         self.get_base_stats()
+        self.accuracy = 100
+        self.evasion = 0
         self.hp = int(self.base_stats['hp'].iloc[0])
         self.attack = int(self.base_stats['attack'].iloc[0])
         self.atk_stage = int(self.base_stats['attack'].iloc[0])
@@ -45,6 +47,8 @@ class Pokemon():
         self.speed_stage = int(self.base_stats['speed'].iloc[0])
         self.crit_rate = 0
         self.condition = None
+        self.condition_turns = 0
+        self.condition_limit = None
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""

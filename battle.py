@@ -116,6 +116,11 @@ class Battle():
         miss = False
         if acc:
             miss = self.check_miss(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'])
+
+        if attacking_mon.condition == 'slp' and attacking_mon.condition_turns == attacking_mon.condition_limit:
+            print(f"{attacking_mon.name} woke up!")
+            attacking_mon.condition_turns = 0
+            attacking_mon.condition = None
         
         time.sleep(1)
 
@@ -126,6 +131,14 @@ class Battle():
         elif attacking_mon.condition == 'slp':
             print(f"{attacking_mon.name} is fast asleep.")
             dmg = 0
+            attacking_mon.condition_turns += 1
+        
+        elif attacking_mon.condition == 'frz':
+            if random.randint(0, 100) < 20:
+                print(f"{attacking_mon.name} thawed out!")
+                attacking_mon.condition = None
+            else:
+                print(f"{attacking_mon.name} is frozen solid!")
         
         elif miss:
             print(f"{defending_mon.name} avoided the attack!")
@@ -165,9 +178,14 @@ class Battle():
             if defending_mon.condition == 'psn':
                 defending_mon.bars -= (1/16)*defending_mon.max_bars
                 print(f"\n{defending_mon.name} is hurt by poison!")
-            if attacking_mon.condition == 'psn':
+            if attacking_mon.condition == ('psn' or 'brn'):
                 attacking_mon.bars -= (1/16)*attacking_mon.max_bars
                 print(f"\n{attacking_mon.name} is hurt by poison!")
+
+            if attacking_mon.condition:
+                attacking_mon.condition_turns += 1
+            if defending_mon.condition:
+                defending_mon.condition_turns += 1
 
         print('\n')
         print(self.pokemon1.name, "health:", self.pokemon1.health)

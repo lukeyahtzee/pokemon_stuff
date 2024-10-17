@@ -67,7 +67,7 @@ class Pokemon():
                 valid_moves.append(i)
 
         if num_of_moves > 4:
-            move_index = np.random.choice(valid_moves, 4)
+            move_index = np.random.choice(valid_moves, 4, replace=False)
         else:
             move_index = valid_moves
 

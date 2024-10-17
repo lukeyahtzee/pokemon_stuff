@@ -38,6 +38,8 @@ def status_effect_check(move_name):
         move['condition'] = 'plz'
     if 'burn' in str.lower(response_json['effect_entries'][0]['effect']):
         move['condition'] = 'brn'
+    if 'confuses' in str.lower(response_json['effect_entries'][0]['effect']):
+        move['condition'] = 'cfn'
     
     return move
 
@@ -116,6 +118,9 @@ def print_condition(condition, defending_mon):
         print(defending_mon.name, 'was paralyzed! It may be unable to move!')
     if condition == 'brn':
         print(defending_mon.name, 'was badly burned!')
+    if condition == 'cfn':
+        print(defending_mon.name, 'became confused!')
+        defending_mon.condition_limit = random.randint(2, 5)
 
 def print_stat(stat, mon, buff):
     if buff:

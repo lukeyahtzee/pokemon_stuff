@@ -99,9 +99,16 @@ class Battle():
         if random.randint(0, 100) > acc:
             missed = True
         return missed
+    
+    def check_cfn(self, name):
+        print(f"{name} is confused!")
+        if random.randint(0, 100) < 50:
+            return True
+        return False
 
 
     def battle_turn(self, attacking_mon, defending_mon):
+
         print("Go", attacking_mon.name, "!")
         for i, x in enumerate(attacking_mon.moves):
             print(
@@ -115,10 +122,16 @@ class Battle():
         acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
         miss = False
         if acc:
-            miss = self.check_miss(attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'])
+            miss = self.check_miss((attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'] * 
+                                   attacking_mon.accuracy) - defending_mon.evasion)
 
         if attacking_mon.condition == 'slp' and attacking_mon.condition_turns == attacking_mon.condition_limit:
             print(f"{attacking_mon.name} woke up!")
+            attacking_mon.condition_turns = 0
+            attacking_mon.condition = None
+        
+        if attacking_mon.condition == 'cfn' and attacking_mon.condition_turns == attacking_mon.condition_limit:
+            print(f"{attacking_mon.name} snapped out of confusion!")
             attacking_mon.condition_turns = 0
             attacking_mon.condition = None
         
@@ -126,6 +139,11 @@ class Battle():
 
         if attacking_mon.condition == 'plz' and random.randint(0, 100) < 25:
             print(f"{attacking_mon.name} is paralyzed! It can't move!")
+            dmg = 0
+
+        elif attacking_mon.condition == 'cfn' and self.check_cfn(attacking_mon.name):
+            print(f"It hurt itself in confusion!")
+            attacking_mon.bars -= (((2 * attacking_mon.level) / 5) + 2) * 40 * (attacking_mon.attack / attacking_mon.defense) / 50
             dmg = 0
 
         elif attacking_mon.condition == 'slp':
@@ -172,6 +190,7 @@ class Battle():
 
         # for i in range(int(defending_mon.bars)):
         #     defending_mon.health += "="
+        attacking_mon.health = '=' * math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
         defending_mon.health = '=' * math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
 
         if self.bottom_of_turn:
@@ -225,6 +244,9 @@ class Battle():
 
             if self.defending_mon.bars <= 0:
                 self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
+                break
+            if self.attacking_mon.bars <= 0:
+                self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
                 break
 
         # mirroring the attack pattern of the quicker mon but for the slower mon

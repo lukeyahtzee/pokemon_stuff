@@ -62,10 +62,10 @@ def status_effect_calc(attacking_mon, defending_mon, index):
             stat_mod(attacking_mon.speed, attacking_mon.speed_stage, True)
             print_stat('speed', attacking_mon, True)
         if move_fx['effect'] == 'eva':
-            min(attacking_mon.evasion + 5, 100)
+            attacking_mon.evasion = min(attacking_mon.evasion + 5, 50)
             print_stat('evasion', attacking_mon, True)
         if move_fx['effect'] == 'acc':
-            min((attacking_mon.accuracy + 5),100)
+            attacking_mon.accuracy = min((attacking_mon.accuracy + 5),100)
             print_stat('accuracy', attacking_mon, True)
     
     elif move_fx['target'] == 'opponent':

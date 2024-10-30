@@ -107,7 +107,27 @@ class Battle():
         if random.randint(0, 100) < 50:
             return True
         return False
+    
+    def test_mons_stats(self, mon_1, mon_2):
+        print(f"{mon_1.name} stats:\n")
+        print(f"attack: {mon_1.attack}")
+        print(f"defense: {mon_1.defense}")
+        print(f"special attack: {mon_1.special_attack}")
+        print(f"special defense: {mon_1.special_defense}")
+        print(f"speed: {mon_1.speed}")
+        print(f"accuracy: {mon_1.accuracy}")
+        print(f"evasion: {mon_1.evasion}")
 
+        print(f"{mon_2.name} stats:\n")
+        print(f"attack: {mon_2.attack}")
+        print(f"defense: {mon_2.defense}")
+        print(f"special attack: {mon_2.special_attack}")
+        print(f"special defense: {mon_2.special_defense}")
+        print(f"speed: {mon_2.speed}")
+        print(f"accuracy: {mon_2.accuracy}")
+        print(f"evasion: {mon_2.evasion}")
+
+        
 
     def battle_turn(self, attacking_mon, defending_mon):
 
@@ -155,7 +175,7 @@ class Battle():
         miss = False
         if acc:
             miss = self.check_miss((attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'] * 
-                                   attacking_mon.accuracy) - defending_mon.evasion)
+                                   (attacking_mon.accuracy / 100)) - defending_mon.evasion)
 
         if attacking_mon.condition == 'slp' and attacking_mon.condition_turns == attacking_mon.condition_limit:
             print(f"{attacking_mon.name} woke up!")
@@ -237,6 +257,8 @@ class Battle():
                 attacking_mon.condition_turns += 1
             if defending_mon.condition:
                 defending_mon.condition_turns += 1
+
+            # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
         print('\n')
         print(self.pokemon1.name, "health:", self.pokemon1.health)

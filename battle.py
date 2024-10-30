@@ -264,8 +264,6 @@ class Battle():
         print(self.pokemon1.name, "health:", self.pokemon1.health)
         print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
 
-        self.bottom_of_turn = not self.bottom_of_turn
-
     def delay_print(self, s):
         for c in s:
             sys.stdout.write(c)
@@ -304,6 +302,13 @@ class Battle():
                 break
 
         # mirroring the attack pattern of the quicker mon but for the slower mon
-            temp_mon = self.attacking_mon
-            self.attacking_mon = self.defending_mon
-            self.defending_mon = temp_mon
+            if self.bottom_of_turn:
+                if self.defending_mon.speed >= self.attacking_mon.speed:
+                    temp_mon = self.attacking_mon
+                    self.attacking_mon = self.defending_mon
+                    self.defending_mon = temp_mon
+            else:
+                temp_mon = self.attacking_mon
+                self.attacking_mon = self.defending_mon
+                self.defending_mon = temp_mon
+            self.bottom_of_turn = not self.bottom_of_turn

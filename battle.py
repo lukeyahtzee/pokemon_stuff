@@ -16,6 +16,8 @@ class Battle():
         self.attacking_mon = None
         self.defending_mon = None
         self.bottom_of_turn = False
+        self.first_turn_poke1 = True
+        self.first_turn_poke2 = True
 
     def damage_multiplier(self, defending_mon, attacking_mon, move):
         d_resistences = defending_mon.resistances
@@ -113,6 +115,36 @@ class Battle():
         for i, x in enumerate(attacking_mon.moves):
             print(
                 i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+            
+        if not self.bottom_of_turn and self.first_turn_poke1 or self.bottom_of_turn and self.first_turn_poke2:
+            while attacking_mon.rerolls_left > 0:
+                try:
+                    try:
+                        val = str(input("\nReroll moves? (1-y, 2-n) ")).lower()
+                    except ValueError:
+                        print('Please input a name')
+                        continue
+
+                    if val not in ['1', '2']:
+                            print('Please choose 1 or 2')
+                    elif val == '1':
+                        attacking_mon.rerolls_left -= 1
+                        print(f"Rerolling...({attacking_mon.rerolls_left} rerolls remaining!)\n")
+                        attacking_mon.moves.clear()
+                        attacking_mon.move_dict.clear()
+                        attacking_mon.get_moves()
+                        for i, x in enumerate(attacking_mon.moves):
+                            attacking_mon.get_move_info(x)
+                            print(
+                                i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                    elif val == '2':
+                        break
+                except KeyboardInterrupt:
+                    break
+            if self.bottom_of_turn:
+                self.first_turn_poke2 = False
+            else:
+                self.first_turn_poke1 = False
 
         print('\n')
         index = self.input_validation("Pick a move: ")

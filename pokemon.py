@@ -49,6 +49,7 @@ class Pokemon():
         self.condition = None
         self.condition_turns = 0
         self.condition_limit = None
+        self.rerolls_left = 3
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""
@@ -70,8 +71,7 @@ class Pokemon():
             move_index = np.random.choice(valid_moves, 4, replace=False)
         else:
             move_index = valid_moves
-
-        #check for duplicates
+        
         for i in move_index:
             self.moves.append(
                 response_json['moves'][i]['move']['name'])

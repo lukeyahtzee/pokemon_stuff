@@ -149,7 +149,8 @@ class Battle():
                             print('Please choose 1 or 2')
                     elif val == '1':
                         attacking_mon.rerolls_left -= 1
-                        print(f"Rerolling...({attacking_mon.rerolls_left} rerolls remaining!)\n")
+                        self.delay_print(f"Rerolling...({attacking_mon.rerolls_left} rerolls remaining!)")
+                        print("\n")
                         attacking_mon.moves.clear()
                         attacking_mon.move_dict.clear()
                         attacking_mon.get_moves()
@@ -175,7 +176,7 @@ class Battle():
         miss = False
         if acc:
             miss = self.check_miss((attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'] * 
-                                   (attacking_mon.accuracy / 100)) - defending_mon.evasion)
+                                   (attacking_mon.accuracy / 100)) * (defending_mon.evasion / 100))
 
         if attacking_mon.condition == 'slp' and attacking_mon.condition_turns == attacking_mon.condition_limit:
             print(f"{attacking_mon.name} woke up!")
@@ -282,7 +283,7 @@ class Battle():
 
     # evaluate speed of pokemon
 
-        while self.pokemon1.speed > self.pokemon2.speed == True:
+        if self.pokemon1.speed > self.pokemon2.speed:
             self.attacking_mon = self.pokemon1
             self.defending_mon = self.pokemon2
 

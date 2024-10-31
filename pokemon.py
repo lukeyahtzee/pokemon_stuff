@@ -33,7 +33,7 @@ class Pokemon():
         self.move_dict = {}
         self.get_base_stats()
         self.accuracy = 100
-        self.evasion = 0
+        self.evasion = 100
         self.hp = int(self.base_stats['hp'].iloc[0])
         self.attack = int(self.base_stats['attack'].iloc[0])
         self.atk_stage = 0

@@ -303,7 +303,7 @@ class Battle():
 
         # mirroring the attack pattern of the quicker mon but for the slower mon
             if self.bottom_of_turn:
-                if self.defending_mon.speed >= self.attacking_mon.speed:
+                if self.defending_mon.speed > self.attacking_mon.speed:
                     temp_mon = self.attacking_mon
                     self.attacking_mon = self.defending_mon
                     self.defending_mon = temp_mon

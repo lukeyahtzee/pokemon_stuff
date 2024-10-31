@@ -111,9 +111,12 @@ def status_effect_calc(attacking_mon, defending_mon, index):
         if move_fx['effect'] == 'acc':
             min((defending_mon.accuracy - 5),50)
             print_stat('accuracy', defending_mon, False)
-        defending_mon.condition = move_fx['condition']
-        if defending_mon.condition != None:
-            print_condition(defending_mon.condition, defending_mon)
+        if defending_mon.condition and move_fx['condition']:
+            print("But it failed!")
+        elif move_fx['condition']:
+            defending_mon.condition = move_fx['condition']
+            if defending_mon.condition != None:
+                print_condition(defending_mon.condition, defending_mon)
 
 
 

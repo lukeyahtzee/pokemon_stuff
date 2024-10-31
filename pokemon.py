@@ -50,6 +50,7 @@ class Pokemon():
         self.condition_turns = 0
         self.condition_limit = None
         self.rerolls_left = 3
+        self.flinch = False
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""
@@ -121,9 +122,10 @@ class Pokemon():
         damage_class = response_json['damage_class']['name']
         move_accuracy = response_json['accuracy']
         move_power = 0 if response_json['power'] == None else response_json['power'] // 10
+        effect_chance = response_json['effect_chance']
 
         self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
-                        'damage_class': damage_class, 'status-effects': status}
+                        'damage_class': damage_class, 'status-effects': status, 'effect-chance': effect_chance}
 
     def get_attrs(self):
         """Retrieves all the pokemons attributes to prepare for battle"""

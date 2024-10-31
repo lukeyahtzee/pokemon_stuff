@@ -40,11 +40,22 @@ def status_effect_check(move_name):
         move['condition'] = 'brn'
     if 'confuses' in str.lower(response_json['effect_entries'][0]['effect']):
         move['condition'] = 'cfn'
+    if 'flinch' in str.lower(response_json['effect_entries'][0]['effect']):
+        move['condition'] = 'flinch'
     
     return move
 
 def status_effect_calc(attacking_mon, defending_mon, index):
     move_fx = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['status-effects']
+    move_chance = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance']
+
+    if move_chance:
+        if random.randint(0, 100) > move_chance:
+            return
+    
+    if move_fx['condition'] == 'flinch':
+        defending_mon.flinch = True
+        return
     
     if move_fx['target'] == 'user':
         if move_fx['effect'] == 'def':

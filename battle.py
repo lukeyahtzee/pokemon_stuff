@@ -170,8 +170,6 @@ class Battle():
         print('\n')
         index = self.input_validation("Pick a move: ")
 
-        print(attacking_mon.name, "used", list(attacking_mon.moves)[index-1])
-
         acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
         miss = False
         if acc:
@@ -210,33 +208,39 @@ class Battle():
                 attacking_mon.condition = None
             else:
                 print(f"{attacking_mon.name} is frozen solid!")
-        
-        elif miss:
-            print(f"{defending_mon.name} avoided the attack!")
-            dmg = 0
 
-        elif attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0:
-            status_effect_calc(attacking_mon, defending_mon, index)
+        elif attacking_mon.flinch:
+            print(f"{attacking_mon.name} flinched!")
             dmg = 0
 
         else:
-            dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
+            print(attacking_mon.name, "used", list(attacking_mon.moves)[index-1])
+            if miss:
+                print(f"{defending_mon.name} avoided the attack!")
+                dmg = 0
 
-            print(attacking_mon.name,
-                "did",
-                dmg,
-                "damage!")
-            
-            if crit == 2:
-                print("A critical hit!")
+            elif attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0:
+                status_effect_calc(attacking_mon, defending_mon, index)
+                dmg = 0
 
-            match multiplier:
-                case 2 | 4:
-                    print("It's super effective!")
-                case 0.5 | 0.25:
-                    print("It's not very effective...")
-                case 0:
-                    print(f"It doesn't effect the opposing {defending_mon.name}...")
+            else:
+                dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
+
+                print(attacking_mon.name,
+                    "did",
+                    dmg,
+                    "damage!")
+                
+                if crit == 2:
+                    print("A critical hit!")
+
+                match multiplier:
+                    case 2 | 4:
+                        print("It's super effective!")
+                    case 0.5 | 0.25:
+                        print("It's not very effective...")
+                    case 0:
+                        print(f"It doesn't effect the opposing {defending_mon.name}...")
 
         defending_mon.bars -= dmg
         defending_mon.health = ""
@@ -245,6 +249,10 @@ class Battle():
         #     defending_mon.health += "="
         attacking_mon.health = '=' * math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
         defending_mon.health = '=' * math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
+
+        if (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] and 
+            attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] != 100):
+            status_effect_calc(attacking_mon, defending_mon, index)
 
         if self.bottom_of_turn:
             if defending_mon.condition == 'psn':
@@ -258,6 +266,8 @@ class Battle():
                 attacking_mon.condition_turns += 1
             if defending_mon.condition:
                 defending_mon.condition_turns += 1
+            attacking_mon.flinch = False
+            defending_mon.flinch = False
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
@@ -304,7 +314,7 @@ class Battle():
 
         # mirroring the attack pattern of the quicker mon but for the slower mon
             if self.bottom_of_turn:
-                if self.defending_mon.speed > self.attacking_mon.speed:
+                if self.defending_mon.speed >= self.attacking_mon.speed:
                     temp_mon = self.attacking_mon
                     self.attacking_mon = self.defending_mon
                     self.defending_mon = temp_mon

@@ -51,6 +51,8 @@ class Pokemon():
         self.condition_limit = None
         self.rerolls_left = 3
         self.flinch = False
+        self.turns_invulnerable = 0
+        self.reflect_barrier = 0
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""

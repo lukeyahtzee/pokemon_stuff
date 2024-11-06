@@ -3,6 +3,7 @@ import time
 import sys
 import math
 from status import status_effect_calc
+from extra_effects import unique_effects, apply_effects
 
 
 class Battle():
@@ -58,6 +59,9 @@ class Battle():
             atk_def_mult = attacking_mon.special_attack / defending_mon.special_defense
         else:
             atk_def_mult = attacking_mon.attack / defending_mon.defense
+            if defending_mon.reflect_barrier > 0:
+                # reduce by 1/2 extra if the defending mon has reflect up
+                atk_def_mult  = atk_def_mult / 2
 
         if random.randint(0, 255) < attacking_mon.crit_val and multiplier != 0:
             crit = 2
@@ -219,6 +223,9 @@ class Battle():
                 print(f"{defending_mon.name} avoided the attack!")
                 dmg = 0
 
+            elif unique_effects(list(attacking_mon.moves)[index - 1]):
+                dmg = apply_effects(attacking_mon, list(attacking_mon.moves)[index - 1])
+
             elif attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0:
                 status_effect_calc(attacking_mon, defending_mon, index)
                 dmg = 0
@@ -268,6 +275,10 @@ class Battle():
                 defending_mon.condition_turns += 1
             attacking_mon.flinch = False
             defending_mon.flinch = False
+            if attacking_mon.reflect_barrier > 0:
+                attacking_mon.reflect_barrier -= 1
+            if defending_mon.reflect_barrier > 0:
+                defending_mon.reflect_barrier -= 1
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 

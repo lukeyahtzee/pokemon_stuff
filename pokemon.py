@@ -51,7 +51,7 @@ class Pokemon():
         self.condition_limit = None
         self.rerolls_left = 3
         self.flinch = False
-        self.turns_invulnerable = 0
+        self.fly_dig = False
         self.reflect_barrier = 0
 
     def api_call(self, url):
@@ -78,6 +78,17 @@ class Pokemon():
         for i in move_index:
             self.moves.append(
                 response_json['moves'][i]['move']['name'])
+            
+    def reset_stats(self):
+        """Resets all stat changes to this pokemon."""
+        self.attack = int(self.base_stats['attack'].iloc[0])
+        self.special_attack = int(self.base_stats['special-attack'].iloc[0])
+        self.special_defense = int(self.base_stats['special-defense'].iloc[0])
+        self.defense = int(self.base_stats['defense'].iloc[0])
+        self.speed = int(self.base_stats['speed'].iloc[0])
+        self.evasion = 100
+        self.accuracy = 100
+
 
     def poke_types(self):
         """Updates types list for the Pokemon's type(s)"""

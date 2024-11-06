@@ -2,6 +2,7 @@
 from pokemon import Pokemon
 from battle import Battle
 from pokedex import check_pokedex, pokedex
+from move_records import Record
 
 
 def main():
@@ -12,6 +13,8 @@ def main():
     pokemon2 = Pokemon(choice2)
 
     print('\n')
+
+    r = Record()
 
     battle = Battle(pokemon1, pokemon2)
 

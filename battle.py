@@ -4,6 +4,7 @@ import sys
 import math
 from status import status_effect_calc
 from extra_effects import unique_effects, apply_effects
+from move_records import Record
 
 
 class Battle():
@@ -19,6 +20,7 @@ class Battle():
         self.bottom_of_turn = False
         self.first_turn_poke1 = True
         self.first_turn_poke2 = True
+        self.record = Record()
 
     def damage_multiplier(self, defending_mon, attacking_mon, move):
         d_resistences = defending_mon.resistances
@@ -134,6 +136,7 @@ class Battle():
         
 
     def battle_turn(self, attacking_mon, defending_mon):
+        success = True
 
         print("Go", attacking_mon.name, "!")
         for i, x in enumerate(attacking_mon.moves):
@@ -171,14 +174,24 @@ class Battle():
             else:
                 self.first_turn_poke1 = False
 
-        print('\n')
-        index = self.input_validation("Pick a move: ")
+        if ((self.record.get_previous_self_atk(self.bottom_of_turn)[1] == 'fly' or 
+             self.record.get_previous_self_atk(self.bottom_of_turn)[1] == 'dig') and
+            self.record.get_previous_self_atk(self.bottom_of_turn)[0] == attacking_mon.name and
+            self.record.get_previous_self_atk(self.bottom_of_turn)[3]):
+            index = list(attacking_mon.moves).index(self.record.get_previous_self_atk(self.bottom_of_turn)[1]) + 1
+            print('\n')
+
+        else:
+            print('\n')
+            index = self.input_validation("Pick a move: ")
 
         acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
         miss = False
         if acc:
             miss = self.check_miss((attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'] * 
                                    (attacking_mon.accuracy / 100)) * (defending_mon.evasion / 100))
+            if defending_mon.fly_dig and (list(attacking_mon.moves)[index-1] != 'fly' and list(attacking_mon.moves)[index-1] != 'dig'):
+                miss = True
 
         if attacking_mon.condition == 'slp' and attacking_mon.condition_turns == attacking_mon.condition_limit:
             print(f"{attacking_mon.name} woke up!")
@@ -189,32 +202,38 @@ class Battle():
             print(f"{attacking_mon.name} snapped out of confusion!")
             attacking_mon.condition_turns = 0
             attacking_mon.condition = None
+
+        if attacking_mon.condition == 'frz' and random.randint(0, 100) < 20:
+            print(f"{attacking_mon.name} thawed out!")
+            attacking_mon.condition = None
         
         time.sleep(1)
 
         if attacking_mon.condition == 'plz' and random.randint(0, 100) < 25:
             print(f"{attacking_mon.name} is paralyzed! It can't move!")
             dmg = 0
+            success = False
 
         elif attacking_mon.condition == 'cfn' and self.check_cfn(attacking_mon.name):
             print(f"It hurt itself in confusion!")
             attacking_mon.bars -= (((2 * attacking_mon.level) / 5) + 2) * 40 * (attacking_mon.attack / attacking_mon.defense) / 50
             dmg = 0
+            success = False
 
         elif attacking_mon.condition == 'slp':
             print(f"{attacking_mon.name} is fast asleep.")
             dmg = 0
             attacking_mon.condition_turns += 1
+            success = False
         
         elif attacking_mon.condition == 'frz':
-            if random.randint(0, 100) < 20:
-                print(f"{attacking_mon.name} thawed out!")
-                attacking_mon.condition = None
-            else:
-                print(f"{attacking_mon.name} is frozen solid!")
+            print(f"{attacking_mon.name} is frozen solid!")
+            success = False
+            dmg = 0
 
         elif attacking_mon.flinch:
             print(f"{attacking_mon.name} flinched!")
+            success = False
             dmg = 0
 
         else:
@@ -222,9 +241,10 @@ class Battle():
             if miss:
                 print(f"{defending_mon.name} avoided the attack!")
                 dmg = 0
+                success = False
 
-            elif unique_effects(list(attacking_mon.moves)[index - 1]):
-                dmg = apply_effects(attacking_mon, list(attacking_mon.moves)[index - 1])
+            elif unique_effects(list(attacking_mon.moves)[index - 1]) and not attacking_mon.fly_dig:
+                dmg = apply_effects(attacking_mon, defending_mon, list(attacking_mon.moves)[index - 1])
 
             elif attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0:
                 status_effect_calc(attacking_mon, defending_mon, index)
@@ -262,6 +282,7 @@ class Battle():
             status_effect_calc(attacking_mon, defending_mon, index)
 
         if self.bottom_of_turn:
+            self.record.record_second_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)
             if defending_mon.condition == 'psn':
                 defending_mon.bars -= (1/16)*defending_mon.max_bars
                 print(f"\n{defending_mon.name} is hurt by poison!")
@@ -279,6 +300,9 @@ class Battle():
                 attacking_mon.reflect_barrier -= 1
             if defending_mon.reflect_barrier > 0:
                 defending_mon.reflect_barrier -= 1
+        
+        else:
+            self.record.record_first_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 

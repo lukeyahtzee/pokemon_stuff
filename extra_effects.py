@@ -28,10 +28,12 @@ def apply_effects(mon, defending_mon, move):
 
     if move == 'fly':
         print(f'{mon.name} flew up high!')
+        mon.fly_dig = True
         return 0
     
     if move == 'dig':
         print(f'{mon.name} dug into the ground!')
+        mon.fly_dig = True
         return 0
     
     if move == 'rest':

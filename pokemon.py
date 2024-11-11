@@ -21,7 +21,7 @@ class Pokemon():
         self.name = name
         self.types = []
         self.moves = []
-        self.health = '=========='
+        self.health = 10
         self.bars = 30
         self.max_bars = 0
         self.level = 50

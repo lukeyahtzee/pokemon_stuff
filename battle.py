@@ -5,6 +5,7 @@ import math
 from status import status_effect_calc
 from extra_effects import unique_effects, apply_effects
 from move_records import Record
+from dynamic_healthbar import print_health, finish_print
 
 
 class Battle():
@@ -174,10 +175,7 @@ class Battle():
             else:
                 self.first_turn_poke1 = False
 
-        if ((self.record.get_previous_self_atk(self.bottom_of_turn)[1] == 'fly' or 
-             self.record.get_previous_self_atk(self.bottom_of_turn)[1] == 'dig') and
-            self.record.get_previous_self_atk(self.bottom_of_turn)[0] == attacking_mon.name and
-            self.record.get_previous_self_atk(self.bottom_of_turn)[3]):
+        if (attacking_mon.fly_dig):
             index = list(attacking_mon.moves).index(self.record.get_previous_self_atk(self.bottom_of_turn)[1]) + 1
             print('\n')
 
@@ -251,6 +249,8 @@ class Battle():
                 dmg = 0
 
             else:
+                if attacking_mon.fly_dig:
+                    attacking_mon.fly_dig = False
                 dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
 
                 print(attacking_mon.name,
@@ -270,12 +270,13 @@ class Battle():
                         print(f"It doesn't effect the opposing {defending_mon.name}...")
 
         defending_mon.bars -= dmg
-        defending_mon.health = ""
 
         # for i in range(int(defending_mon.bars)):
         #     defending_mon.health += "="
-        attacking_mon.health = '=' * math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
-        defending_mon.health = '=' * math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
+        prev_mon1_health = self.pokemon1.health
+        prev_mon2_health = self.pokemon2.health
+        attacking_mon.health = math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
+        defending_mon.health = math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
 
         if (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] and 
             attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] != 100):
@@ -307,8 +308,20 @@ class Battle():
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
         print('\n')
-        print(self.pokemon1.name, "health:", self.pokemon1.health)
-        print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
+        print_health(0, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        for i in range(1, (prev_mon1_health - self.pokemon1.health + 1)):
+            print_health(i, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        finish_print(prev_mon1_health - self.pokemon1.health, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        time.sleep(0.5)
+
+        print_health(0, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        for i in range(1, (prev_mon2_health - self.pokemon2.health + 1)):
+            print_health(i, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        finish_print(prev_mon2_health - self.pokemon2.health, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        time.sleep(0.5)
+        print("\n")
+        # print(self.pokemon1.name, "health:", self.pokemon1.health)
+        # print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
 
     def delay_print(self, s):
         for c in s:

@@ -22,8 +22,11 @@ def unique_effects(move):
 
 def apply_effects(mon, defending_mon, move):
     if move == 'reflect':
-        print(f'{mon.name} put up a barrier! damage from physical attacks is weakened!')
-        mon.reflect_barrier = 5
+        if mon.reflect_barrier > 0:
+            print(f'{mon.name} already has a barrier active!')
+        else:
+            print(f'{mon.name} put up a barrier! damage from physical attacks is weakened!')
+            mon.reflect_barrier = 5
         return 0
 
     if move == 'fly':
@@ -35,6 +38,11 @@ def apply_effects(mon, defending_mon, move):
         print(f'{mon.name} dug into the ground!')
         mon.fly_dig = True
         return 0
+    
+    if move == 'self-destruct':
+        print(f'{mon.name} self destructed!')
+        mon.bars = 0
+        return 20
     
     if move == 'rest':
         if mon.bars == mon.max_bars or mon.condition == 'slp':

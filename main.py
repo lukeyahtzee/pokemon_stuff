@@ -14,8 +14,6 @@ def main():
 
     print('\n')
 
-    r = Record()
-
     battle = Battle(pokemon1, pokemon2)
 
     battle.commence_battle()

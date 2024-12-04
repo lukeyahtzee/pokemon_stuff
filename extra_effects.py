@@ -1,3 +1,10 @@
+from move_records import Record
+from status import status_effect_check
+import requests
+import json
+import random
+
+
 extra_effects_moves = [
     'reflect',
     'mimic',
@@ -12,7 +19,13 @@ extra_effects_moves = [
     'haze',
     'substitute',
     'seismic-toss',
-    'counter'
+    'counter',
+    'double-edge',
+    'focus-energy',
+    'super-fang',
+    'leech-life',
+    'mega-drain',
+    'explosion'
 ]
 
 def unique_effects(move):
@@ -20,7 +33,12 @@ def unique_effects(move):
         return True
     else: return False
 
-def apply_effects(mon, defending_mon, move):
+def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
+    if move == 'leech-life' or move == 'mega-drain':
+        mon.bars = min(mon.bars + (dmg / 2), mon.max_bars)
+        print(f"{defending_mon.name} had its energy drained!")
+        return dmg
+
     if move == 'reflect':
         if mon.reflect_barrier > 0:
             print(f'{mon.name} already has a barrier active!')
@@ -39,7 +57,7 @@ def apply_effects(mon, defending_mon, move):
         mon.fly_dig = True
         return 0
     
-    if move == 'self-destruct':
+    if move == 'self-destruct' or move == 'explosion':
         print(f'{mon.name} self destructed!')
         mon.bars = 0
         return 20
@@ -54,6 +72,9 @@ def apply_effects(mon, defending_mon, move):
             print(f'{mon.name} fell asleep and regained health!')
         return 0
     
+    if move == 'super-fang':
+        return round(defending_mon.bars / 2)
+    
     if move == 'seismic-toss':
         # should do 50 damage strictly but would be too imbalanced
         return 17
@@ -65,18 +86,64 @@ def apply_effects(mon, defending_mon, move):
     if move == 'counter':
         # deal back twice the physical damage the user received this turn, or nothing if n/a
         # will be a little tricky to implement
-        return 5
+        if not r.get_previous_enemy_atk(bottom_of_turn)[3]:
+            print("but it failed!")
+            return 0
+        else:
+            return 2 * r.get_previous_enemy_atk(bottom_of_turn)[2]
     
     if move == 'haze':
         # resets all pokemons stats to base
         mon.reset_stats()
         defending_mon.reset_stats()
         print("all stat modifications have been erased!")
+        return 0
+    
+    if move == 'double-edge':
+        mon.bars -= ((1/3) * dmg)
+        print(f"{mon.name} was hurt by recoil!")
+        return dmg
+        # applies 1/3 the damage inflicted as recoil
+
+    if move == 'focus-energy':
+        if not mon.focus_energy:
+            print(f"{mon.name} is getting pumped!")
+            mon.focus_energy = True
+            mon.crit_rate = mon.crit_rate * 2
+            return 0
+        else:
+            print("But it failed!")
+            return 0
+        
+    if move == 'psywave':
+        x = random.randrange(50, 150, 10)
+        dmg = (x / 100) * 15
+        return round(dmg)
 
     if move == 'mimic':
-        # claims the targets most recently used move in this slot. will also be kind hard to implement
-        # will need to maybe keep a record somehow of moves used throughout the battle or something
-        return 0
+        if not r.get_previous_enemy_atk(bottom_of_turn)[3]:
+            print("But it failed!")
+            return 0
+        else:
+            print(f"{mon.name} learned {r.get_previous_enemy_atk(bottom_of_turn)[1]}!")
+            mon.move_dict['mimic'].clear()
+            mon.moves.remove('mimic')
+            mon.moves.append(r.get_previous_enemy_atk(bottom_of_turn)[1])
+            # collect move info for attacking mons move dict
+            url = 'https://pokeapi.co/api/v2/move/'+r.get_previous_enemy_atk(bottom_of_turn)[1]+'/'
+            response = requests.get(url)
+            response_json = json.loads(response.text)
+            status = status_effect_check(r.get_previous_enemy_atk(bottom_of_turn)[1])
+
+            move_type = response_json['type']['name']
+            damage_class = response_json['damage_class']['name']
+            move_accuracy = response_json['accuracy']
+            move_power = 0 if response_json['power'] == None else response_json['power'] // 10
+            effect_chance = response_json['effect_chance']
+            mon.move_dict[r.get_previous_enemy_atk(bottom_of_turn)[1]] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
+                            'damage_class': damage_class, 'status-effects': status, 'effect-chance': effect_chance}
+            # do api call on the previous move and replace mimic with the new move in the mon's move dict
+            return 0
     
     print('it had no effect...')
     return 0

@@ -66,7 +66,8 @@ class Battle():
                 # reduce by 1/2 extra if the defending mon has reflect up
                 atk_def_mult  = atk_def_mult / 2
 
-        if random.randint(0, 255) < attacking_mon.crit_val and multiplier != 0:
+
+        if random.randint(0, 255) < attacking_mon.crit_rate and multiplier != 0:
             crit = 2
 
         dmg = self.damage_math(attacking_mon.level, crit, attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'],
@@ -241,50 +242,48 @@ class Battle():
                 dmg = 0
                 success = False
 
-            elif unique_effects(list(attacking_mon.moves)[index - 1]) and not attacking_mon.fly_dig:
-                dmg = apply_effects(attacking_mon, defending_mon, list(attacking_mon.moves)[index - 1])
-
-            elif attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0:
+            # split additional effect moves into non damage and damage sections I think would be smart
+            # rn moves with 0 power get caught here and don't trigger the additional effect check
+            elif (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0 
+                  and not unique_effects(list(attacking_mon.moves)[index - 1])):
                 status_effect_calc(attacking_mon, defending_mon, index)
                 dmg = 0
 
             else:
-                if attacking_mon.fly_dig:
-                    attacking_mon.fly_dig = False
                 dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
 
-                print(attacking_mon.name,
-                    "did",
-                    dmg,
-                    "damage!")
-                
-                if crit == 2:
-                    print("A critical hit!")
+                if attacking_mon.fly_dig:
+                    attacking_mon.fly_dig = False
 
-                match multiplier:
-                    case 2 | 4:
-                        print("It's super effective!")
-                    case 0.5 | 0.25:
-                        print("It's not very effective...")
-                    case 0:
-                        print(f"It doesn't effect the opposing {defending_mon.name}...")
+                elif unique_effects(list(attacking_mon.moves)[index - 1]):
+                    dmg = apply_effects(attacking_mon, defending_mon, list(attacking_mon.moves)[index - 1], self.record, self.bottom_of_turn, dmg)
+
+                if dmg != 0:
+                    print(attacking_mon.name,
+                        "did",
+                        dmg,
+                        "damage!")
+                
+                    if crit == 2:
+                        print("A critical hit!")
+
+                    match multiplier:
+                        case 2 | 4:
+                            print("It's super effective!")
+                        case 0.5 | 0.25:
+                            print("It's not very effective...")
+                        case 0:
+                            print(f"It doesn't effect the opposing {defending_mon.name}...")
 
         defending_mon.bars -= dmg
 
-        # for i in range(int(defending_mon.bars)):
-        #     defending_mon.health += "="
-        prev_mon1_health = self.pokemon1.health
-        prev_mon2_health = self.pokemon2.health
-        attacking_mon.health = math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
-        defending_mon.health = math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
-
         if (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] and 
-            attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] != 100):
+            attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] != 100 and success):
             status_effect_calc(attacking_mon, defending_mon, index)
 
         if self.bottom_of_turn:
             self.record.record_second_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)
-            if defending_mon.condition == 'psn':
+            if defending_mon.condition == ('psn' or 'brn'):
                 defending_mon.bars -= (1/16)*defending_mon.max_bars
                 print(f"\n{defending_mon.name} is hurt by poison!")
             if attacking_mon.condition == ('psn' or 'brn'):
@@ -307,17 +306,22 @@ class Battle():
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
+        prev_mon1_health = self.pokemon1.health
+        prev_mon2_health = self.pokemon2.health
+        attacking_mon.health = math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
+        defending_mon.health = math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
+
         print('\n')
         print_health(0, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
         for i in range(1, (prev_mon1_health - self.pokemon1.health + 1)):
             print_health(i, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
-        finish_print(prev_mon1_health - self.pokemon1.health, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        finish_print(prev_mon1_health - max(0, self.pokemon1.health), prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
         time.sleep(0.5)
 
         print_health(0, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
         for i in range(1, (prev_mon2_health - self.pokemon2.health + 1)):
             print_health(i, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
-        finish_print(prev_mon2_health - self.pokemon2.health, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        finish_print(prev_mon2_health - max(0, self.pokemon2.health), prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
         time.sleep(0.5)
         print("\n")
         # print(self.pokemon1.name, "health:", self.pokemon1.health)

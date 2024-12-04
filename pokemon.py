@@ -53,6 +53,8 @@ class Pokemon():
         self.flinch = False
         self.fly_dig = False
         self.reflect_barrier = 0
+        self.focus_energy = False
+        self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap']
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""
@@ -67,9 +69,10 @@ class Pokemon():
         num_of_moves = len(response_json['moves'])
         valid_moves = []
         for i in range(num_of_moves):
-            if response_json['moves'][i]['version_group_details'][0]['version_group']['name'] == ('red-blue' or 'yellow'):
+            if (response_json['moves'][i]['version_group_details'][0]['version_group']['name'] == ('red-blue' or 'yellow') and
+                response_json['moves'][i]['move']['name'] not in self.restricted_moves):
                 valid_moves.append(i)
-
+        num_of_moves = len(valid_moves)
         if num_of_moves > 4:
             move_index = np.random.choice(valid_moves, 4, replace=False)
         else:
@@ -145,7 +148,7 @@ class Pokemon():
         self.get_moves()
         self.poke_types()
         self.factors()
-        self.crit_val = math.floor(self.speed / 2)
+        self.crit_rate = math.floor(self.speed / 2)
         # self.move_info
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.get_move_info, self.moves)

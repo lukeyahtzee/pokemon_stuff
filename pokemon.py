@@ -54,7 +54,7 @@ class Pokemon():
         self.fly_dig = False
         self.reflect_barrier = 0
         self.focus_energy = False
-        self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap']
+        self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap', 'mirror-move']
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""
@@ -137,7 +137,7 @@ class Pokemon():
         move_type = response_json['type']['name']
         damage_class = response_json['damage_class']['name']
         move_accuracy = response_json['accuracy']
-        move_power = 0 if response_json['power'] == None else response_json['power'] // 10
+        move_power = 0 if response_json['power'] == None else response_json['power']
         effect_chance = response_json['effect_chance']
 
         self.move_dict[move] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,

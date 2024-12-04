@@ -257,6 +257,7 @@ class Battle():
 
                 elif unique_effects(list(attacking_mon.moves)[index - 1]):
                     dmg = apply_effects(attacking_mon, defending_mon, list(attacking_mon.moves)[index - 1], self.record, self.bottom_of_turn, dmg)
+                    crit = 1
 
                 if dmg != 0:
                     print(attacking_mon.name,

@@ -25,7 +25,8 @@ extra_effects_moves = [
     'super-fang',
     'leech-life',
     'mega-drain',
-    'explosion'
+    'explosion',
+    'conversion'
 ]
 
 def unique_effects(move):
@@ -60,7 +61,7 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
     if move == 'self-destruct' or move == 'explosion':
         print(f'{mon.name} self destructed!')
         mon.bars = 0
-        return 20
+        return 200
     
     if move == 'rest':
         if mon.bars == mon.max_bars or mon.condition == 'slp':
@@ -76,12 +77,10 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         return round(defending_mon.bars / 2)
     
     if move == 'seismic-toss':
-        # should do 50 damage strictly but would be too imbalanced
-        return 17
+        return 50
     
     if move == 'dragon-rage':
-        # should do 40 damage strictly but would be too imbalanced
-        return 15
+        return 40
     
     if move == 'counter':
         # deal back twice the physical damage the user received this turn, or nothing if n/a
@@ -144,6 +143,17 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
                             'damage_class': damage_class, 'status-effects': status, 'effect-chance': effect_chance}
             # do api call on the previous move and replace mimic with the new move in the mon's move dict
             return 0
+        
+    if move == 'conversion':
+        arr = [0, 1, 2, 3]
+        random.shuffle(arr)
+        for i in arr:
+            if mon.move_dict[list(mon.moves)[i]]['type'] not in mon.types:
+                mon.types = [mon.move_dict[list(mon.moves)[i]]['type']]
+                print(f"{mon.name} converted to {mon.types[0]} type!")
+                return 0
+        print("No valid types to convert to!")
+        return 0
     
     print('it had no effect...')
     return 0

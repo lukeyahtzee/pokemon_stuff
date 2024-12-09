@@ -28,7 +28,10 @@ extra_effects_moves = [
     'explosion',
     'conversion',
     'sonic-boom',
-    'mist'
+    'mist',
+    'fury-attack',
+    'horn-drill',
+    'rage'
 ]
 
 def unique_effects(move):
@@ -42,6 +45,29 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         print(f"{defending_mon.name} had its energy drained!")
         return dmg
     
+    if move == 'rage':
+        mon.enraged = True
+        return dmg
+    
+    if move == 'fury-attack':
+        x = random.randint(0, 7)
+        if x < 3:
+            print("hit 2 times!")
+            return 2 * dmg
+        if x < 6:
+            print("hit 3 times!")
+            return 3 * dmg
+        if x < 7:
+            print("hit 4 times!")
+            return 4 * dmg
+        if x == 7:
+            print("hit 5 times!")
+            return 5 * dmg
+        
+    if move == 'horn-drill':
+        dmg = defending_mon.max_bars
+        return dmg
+
     if move == 'mist':
         mon.mist = 5
         print(f'{mon.name} became immune to stat-lowering effects!')

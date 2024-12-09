@@ -6,6 +6,7 @@ from status import status_effect_calc
 from extra_effects import unique_effects, apply_effects
 from move_records import Record
 from dynamic_healthbar import print_health, finish_print
+from status import stat_mod
 
 
 class Battle():
@@ -184,6 +185,8 @@ class Battle():
             print('\n')
             index = self.input_validation("Pick a move: ")
 
+        if attacking_mon.enraged:
+            attacking_mon.enraged = False
         acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
         miss = False
         if acc:
@@ -246,10 +249,7 @@ class Battle():
             # rn moves with 0 power get caught here and don't trigger the additional effect check
             elif (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0 
                   and not unique_effects(list(attacking_mon.moves)[index - 1])):
-                if defending_mon.mist == 0:
-                    status_effect_calc(attacking_mon, defending_mon, index)
-                else:
-                    print(f'{defending_mon.name} was protected by mist!')
+                status_effect_calc(attacking_mon, defending_mon, index)
                 dmg = 0
 
             else:
@@ -263,6 +263,12 @@ class Battle():
                     crit = 1
 
                 if dmg != 0:
+                    if defending_mon.enraged:
+                        x = stat_mod(defending_mon.atk_stage, True)
+                        defending_mon.attack = round(attacking_mon.attack * x)
+                        defending_mon.atk_stage += 1
+                        print(f'{defending_mon.name}s rage boosted its attack!')
+
                     print(attacking_mon.name,
                         "did",
                         dmg,

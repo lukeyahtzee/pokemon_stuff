@@ -6,28 +6,15 @@ def status_effect_check(move_name):
     move_url = 'https://pokeapi.co/api/v2/move/' + str.lower(move_name)
     response = requests.get(move_url)
     response_json = json.loads(response.text)
-    move = {'accuracy': response_json['accuracy'], 'target': 'user', 'effect': None, 'condition': None}
+    move = {'accuracy': response_json['accuracy'], 'target': 'user', 'effect': None, 'stage-change': 0, 'condition': None}
 
     # detect if it effects opponent or self
     if 'target' in response_json['effect_entries'][0]['effect']:
         move['target'] = 'opponent'
 
-
-    # status buffs/debuffs
-    if 'defense' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'def'
-    if 'attack' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'atk'
-    if 'special attack' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'spatk'
-    if 'special defense' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'spdef'
-    if 'speed' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'spd'
-    if 'evasion' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'eva'
-    if 'accuracy' in str.lower(response_json['effect_entries'][0]['effect']):
-        move['effect'] = 'acc'   
+    if len(response_json['stat_changes']) > 0:
+        move['effect'] = response_json['stat_changes'][0]['stat']['name']
+        move['stage-change'] = response_json['stat_changes'][0]['change']
     
     # status conditions
     if 'sleep' in str.lower(response_json['effect_entries'][0]['effect']):
@@ -42,7 +29,6 @@ def status_effect_check(move_name):
         move['condition'] = 'cfn'
     if 'flinch' in str.lower(response_json['effect_entries'][0]['effect']):
         move['condition'] = 'flinch'
-    
     return move
 
 def status_effect_calc(attacking_mon, defending_mon, index):
@@ -58,70 +44,73 @@ def status_effect_calc(attacking_mon, defending_mon, index):
         return
     
     if move_fx['target'] == 'user':
-        if move_fx['effect'] == 'def':
+        if move_fx['effect'] == 'defense':
             x = stat_mod(attacking_mon.def_stage, True)
             attacking_mon.defense = round(attacking_mon.defense * x)
-            attacking_mon.def_stage += 1
-            print_stat('defense', attacking_mon, True)
-        if move_fx['effect'] == 'atk':
+            attacking_mon.def_stage += move_fx['stage-change']
+            print_stat('defense', attacking_mon, True, move_fx['stage-change'])
+        if move_fx['effect'] == 'attack':
             x = stat_mod(attacking_mon.atk_stage, True)
             attacking_mon.attack = round(attacking_mon.attack * x)
-            attacking_mon.atk_stage += 1
-            print_stat('attack', attacking_mon, True)
-        if move_fx['effect'] == 'spatk':
+            attacking_mon.atk_stage += move_fx['stage-change']
+            print_stat('attack', attacking_mon, True, move_fx['stage-change'])
+        if move_fx['effect'] == 'special-attack':
             x = stat_mod(attacking_mon.spatk_stage, True)
             attacking_mon.special_attack = round(attacking_mon.special_attack * x)
-            attacking_mon.spatk_stage += 1
-            print_stat('special attack', attacking_mon, True)
-        if move_fx['effect'] == 'spdef':
+            attacking_mon.spatk_stage += move_fx['stage-change']
+            print_stat('special attack', attacking_mon, True, move_fx['stage-change'])
+        if move_fx['effect'] == 'special-defense':
             x = stat_mod(attacking_mon.spdef_stage, True)
             attacking_mon.special_defense = round(attacking_mon.special_defense * x)
-            attacking_mon.spdef_stage += 1
-            print_stat('special defense', attacking_mon, True)
-        if move_fx['effect'] == 'spd':
+            attacking_mon.spdef_stage += move_fx['stage-change']
+            print_stat('special defense', attacking_mon, True, move_fx['stage-change'])
+        if move_fx['effect'] == 'speed':
             x = stat_mod(attacking_mon.speed_stage, True)
             attacking_mon.speed = round(attacking_mon.speed * x)
-            attacking_mon.speed_stage += 1
-            print_stat('speed', attacking_mon, True)
-        if move_fx['effect'] == 'eva':
+            attacking_mon.speed_stage += move_fx['stage-change']
+            print_stat('speed', attacking_mon, True, move_fx['stage-change'])
+        if move_fx['effect'] == 'evasion':
             attacking_mon.evasion = max(attacking_mon.evasion - 20, 25)
-            print_stat('evasion', attacking_mon, True)
-        if move_fx['effect'] == 'acc':
+            print_stat('evasion', attacking_mon, True, move_fx['stage-change'])
+        if move_fx['effect'] == 'accuracy':
             attacking_mon.accuracy = min((attacking_mon.accuracy + 50),400)
-            print_stat('accuracy', attacking_mon, True)
+            print_stat('accuracy', attacking_mon, True, move_fx['stage-change'])
     
     elif move_fx['target'] == 'opponent':
-        if move_fx['effect'] == 'def':
+        if defending_mon.mist > 0:
+            print(f'{defending_mon.name} was protected by mist!')
+            return
+        if move_fx['effect'] == 'defense':
             x = stat_mod(defending_mon.def_stage, False)
             defending_mon.defense = round(defending_mon.defense * x)
-            defending_mon.def_stage -= 1
-            print_stat('defense', defending_mon, False)
-        if move_fx['effect'] == 'atk':
+            defending_mon.def_stage += move_fx['stage-change']
+            print_stat('defense', defending_mon, False, move_fx['stage-change'])
+        if move_fx['effect'] == 'attack':
             x = stat_mod(defending_mon.atk_stage, False)
             defending_mon.attack = round(defending_mon.attack * x)
-            defending_mon.atk_stage -= 1
-            print_stat('attack', defending_mon, False)
-        if move_fx['effect'] == 'spatk':
+            defending_mon.atk_stage += move_fx['stage-change']
+            print_stat('attack', defending_mon, False, move_fx['stage-change'])
+        if move_fx['effect'] == 'special-attack':
             x = stat_mod(defending_mon.spatk_stage, False)
             defending_mon.special_attack = round(defending_mon.special_attack * x)
-            defending_mon.spatk_stage -= 1
-            print_stat('special attack', defending_mon, False)
-        if move_fx['effect'] == 'spdef':
+            defending_mon.spatk_stage += move_fx['stage-change']
+            print_stat('special attack', defending_mon, False, move_fx['stage-change'])
+        if move_fx['effect'] == 'special-defense':
             x = stat_mod(defending_mon.spdef_stage, False)
             defending_mon.special_defense = round(defending_mon.special_defense * x)
-            defending_mon.spdef_stage -= 1
-            print_stat('special defense', defending_mon, False)
-        if move_fx['effect'] == 'spd':
+            defending_mon.spdef_stage += move_fx['stage-change']
+            print_stat('special defense', defending_mon, False, move_fx['stage-change'])
+        if move_fx['effect'] == 'speed':
             x = stat_mod(defending_mon.speed_stage, False)
             defending_mon.speed = round(defending_mon.speed * x)
-            defending_mon.speed_dtage -= 1
-            print_stat('speed', defending_mon, False)
-        if move_fx['effect'] == 'eva':
+            defending_mon.speed_stage += move_fx['stage-change']
+            print_stat('speed', defending_mon, False, move_fx['stage-change'])
+        if move_fx['effect'] == 'evasion':
             defending_mon.evasion = min(defending_mon.evasion + 50, 400)
-            print_stat('evasion', defending_mon, False)
-        if move_fx['effect'] == 'acc':
+            print_stat('evasion', defending_mon, False, move_fx['stage-change'])
+        if move_fx['effect'] == 'accuracy':
             defending_mon.accuracy = max((defending_mon.accuracy - 20),25)
-            print_stat('accuracy', defending_mon, False)
+            print_stat('accuracy', defending_mon, False, move_fx['stage-change'])
         if defending_mon.condition and move_fx['condition']:
             print("But it failed!")
         elif move_fx['condition']:
@@ -163,12 +152,17 @@ def print_condition(condition, defending_mon):
         print(defending_mon.name, 'became confused!')
         defending_mon.condition_limit = random.randint(2, 5)
 
-def print_stat(stat, mon, buff):
+def print_stat(stat, mon, buff, stage):
+    sharp = ' '
+    if abs(stage) > 1:
+        sharp = ' sharply '
+    if abs(stage) > 2:
+        sharp = ' severely '
     if buff:
         buff = 'rose!'
     else:
         buff = 'fell!'
-    print(f"{mon.name}'s {stat} {buff}")
+    print(f"{mon.name}'s {stat}{sharp}{buff}")
 
 
 

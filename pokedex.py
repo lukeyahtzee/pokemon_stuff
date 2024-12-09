@@ -1,4 +1,4 @@
-
+import random
 def check_pokedex(pokedex, prompt):
 
     while True:
@@ -12,10 +12,15 @@ def check_pokedex(pokedex, prompt):
             if val not in pokedex:
                 if val == 'list':
                     print(pokedex)
+                
+                if val == 'rand':
+                    val = random.choice(pokedex)
+                    print(f'\nRandom choice - {val}\n')
+                    break
 
                 else:
                     print('Please choose one of the original 151 Pokemon. Spelling is important.',
-                          '\nIf you need help, type: list')
+                          '\nIf you need help, type: list. For a random choice, type: rand')
                 continue
             else:
                 break

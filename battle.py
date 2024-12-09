@@ -25,7 +25,8 @@ class Battle():
         self.record = Record()
 
     def damage_multiplier(self, defending_mon, attacking_mon, move):
-        d_resistences = defending_mon.resistances
+        """Calculates and returns weakness, resistance and same type attack bonus"""
+        d_resistances = defending_mon.resistances
         d_weaknesses = defending_mon.weaknesses
         d_ineffectives = defending_mon.ineffectives
 
@@ -37,8 +38,8 @@ class Battle():
         # type is a weakness/resistance of both the defending mons type
         if m_type in d_weaknesses:
             multiplier *= (2 * d_weaknesses.count(m_type))
-        if m_type in d_resistences:
-            multiplier *= (0.5 * d_resistences.count(m_type))
+        if m_type in d_resistances:
+            multiplier *= (0.5 * d_resistances.count(m_type))
         if m_type in d_ineffectives:
             multiplier *= 0
 
@@ -136,7 +137,36 @@ class Battle():
         print(f"accuracy: {mon_2.accuracy}")
         print(f"evasion: {mon_2.evasion}")
 
-        
+    def reroll_system(self, attacking_mon):
+        while attacking_mon.rerolls_left > 0:
+            try:
+                try:
+                    val = str(input("\nReroll moves? (1-y, 2-n) ")).lower()
+                except ValueError:
+                    print('Please input a name')
+                    continue
+
+                if val not in ['1', '2']:
+                        print('Please choose 1 or 2')
+                elif val == '1':
+                    attacking_mon.rerolls_left -= 1
+                    self.delay_print(f"Rerolling...({attacking_mon.rerolls_left} rerolls remaining!)")
+                    print("\n")
+                    attacking_mon.moves.clear()
+                    attacking_mon.move_dict.clear()
+                    attacking_mon.get_moves()
+                    for i, x in enumerate(attacking_mon.moves):
+                        attacking_mon.get_move_info(x)
+                        print(
+                            i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                elif val == '2':
+                    break
+            except KeyboardInterrupt:
+                break
+        if self.bottom_of_turn:
+            self.first_turn_poke2 = False
+        else:
+            self.first_turn_poke1 = False
 
     def battle_turn(self, attacking_mon, defending_mon):
         success = True
@@ -147,37 +177,11 @@ class Battle():
                 i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
             
         if not self.bottom_of_turn and self.first_turn_poke1 or self.bottom_of_turn and self.first_turn_poke2:
-            while attacking_mon.rerolls_left > 0:
-                try:
-                    try:
-                        val = str(input("\nReroll moves? (1-y, 2-n) ")).lower()
-                    except ValueError:
-                        print('Please input a name')
-                        continue
-
-                    if val not in ['1', '2']:
-                            print('Please choose 1 or 2')
-                    elif val == '1':
-                        attacking_mon.rerolls_left -= 1
-                        self.delay_print(f"Rerolling...({attacking_mon.rerolls_left} rerolls remaining!)")
-                        print("\n")
-                        attacking_mon.moves.clear()
-                        attacking_mon.move_dict.clear()
-                        attacking_mon.get_moves()
-                        for i, x in enumerate(attacking_mon.moves):
-                            attacking_mon.get_move_info(x)
-                            print(
-                                i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
-                    elif val == '2':
-                        break
-                except KeyboardInterrupt:
-                    break
-            if self.bottom_of_turn:
-                self.first_turn_poke2 = False
-            else:
-                self.first_turn_poke1 = False
+            # rerolling logic, only executes on each players first turn
+            self.reroll_system(attacking_mon)
 
         if (attacking_mon.fly_dig):
+            # if in the middle of fly/dig, automatically select fly/dig again to finish attack
             index = list(attacking_mon.moves).index(self.record.get_previous_self_atk(self.bottom_of_turn)[1]) + 1
             print('\n')
 
@@ -187,6 +191,8 @@ class Battle():
 
         if attacking_mon.enraged:
             attacking_mon.enraged = False
+        
+        # check accuracy and expiring status conditions
         acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
         miss = False
         if acc:
@@ -211,6 +217,7 @@ class Battle():
         
         time.sleep(1)
 
+        # check debilitating status conditions
         if attacking_mon.condition == 'plz' and random.randint(0, 100) < 25:
             print(f"{attacking_mon.name} is paralyzed! It can't move!")
             dmg = 0
@@ -245,14 +252,13 @@ class Battle():
                 dmg = 0
                 success = False
 
-            # split additional effect moves into non damage and damage sections I think would be smart
-            # rn moves with 0 power get caught here and don't trigger the additional effect check
             elif (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0 
                   and not unique_effects(list(attacking_mon.moves)[index - 1])):
                 status_effect_calc(attacking_mon, defending_mon, index)
                 dmg = 0
 
             else:
+                status_effect_calc(attacking_mon, defending_mon, index)
                 dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
 
                 if attacking_mon.fly_dig:

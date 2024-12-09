@@ -173,7 +173,7 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
             move_type = response_json['type']['name']
             damage_class = response_json['damage_class']['name']
             move_accuracy = response_json['accuracy']
-            move_power = 0 if response_json['power'] == None else response_json['power'] // 10
+            move_power = 0 if response_json['power'] == None else response_json['power']
             effect_chance = response_json['effect_chance']
             mon.move_dict[r.get_previous_enemy_atk(bottom_of_turn)[1]] = {'type': move_type, 'power': move_power, 'accuracy': move_accuracy,
                             'damage_class': damage_class, 'status-effects': status, 'effect-chance': effect_chance}

@@ -154,10 +154,14 @@ def print_condition(condition, defending_mon):
 
 def print_stat(stat, mon, buff, stage):
     sharp = ' '
-    if abs(stage) > 1:
+    if stage > 1:
         sharp = ' sharply '
-    if abs(stage) > 2:
+    if stage < -1:
+        sharp = ' harshly '
+    if stage < -2:
         sharp = ' severely '
+    if stage > 2:
+        sharp = ' drastically '
     if buff:
         buff = 'rose!'
     else:

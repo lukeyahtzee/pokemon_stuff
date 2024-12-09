@@ -246,7 +246,10 @@ class Battle():
             # rn moves with 0 power get caught here and don't trigger the additional effect check
             elif (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0 
                   and not unique_effects(list(attacking_mon.moves)[index - 1])):
-                status_effect_calc(attacking_mon, defending_mon, index)
+                if defending_mon.mist == 0:
+                    status_effect_calc(attacking_mon, defending_mon, index)
+                else:
+                    print(f'{defending_mon.name} was protected by mist!')
                 dmg = 0
 
             else:
@@ -301,6 +304,10 @@ class Battle():
                 attacking_mon.reflect_barrier -= 1
             if defending_mon.reflect_barrier > 0:
                 defending_mon.reflect_barrier -= 1
+            if attacking_mon.mist > 0:
+                attacking_mon.mist -= 1
+            if defending_mon.mist > 0:
+                defending_mon.mist -= 1
         
         else:
             self.record.record_first_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)

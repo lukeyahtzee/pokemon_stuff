@@ -26,7 +26,9 @@ extra_effects_moves = [
     'leech-life',
     'mega-drain',
     'explosion',
-    'conversion'
+    'conversion',
+    'sonic-boom',
+    'mist'
 ]
 
 def unique_effects(move):
@@ -39,6 +41,11 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         mon.bars = min(mon.bars + (dmg / 2), mon.max_bars)
         print(f"{defending_mon.name} had its energy drained!")
         return dmg
+    
+    if move == 'mist':
+        mon.mist = 5
+        print(f'{mon.name} became immune to stat-lowering effects!')
+        return 0
 
     if move == 'reflect':
         if mon.reflect_barrier > 0:
@@ -97,6 +104,9 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         defending_mon.reset_stats()
         print("all stat modifications have been erased!")
         return 0
+    
+    if move == 'sonic-boom':
+        return 20
     
     if move == 'double-edge':
         mon.bars -= ((1/3) * dmg)

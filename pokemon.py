@@ -54,6 +54,7 @@ class Pokemon():
         self.fly_dig = False
         self.reflect_barrier = 0
         self.focus_energy = False
+        self.mist = 0
         self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap', 'mirror-move', 'disable']
 
     def api_call(self, url):

@@ -2,6 +2,11 @@ import random
 import time
 import sys
 import math
+from status import status_effect_calc
+from extra_effects import unique_effects, apply_effects
+from move_records import Record
+from dynamic_healthbar import print_health, finish_print
+from status import stat_mod
 
 
 class Battle():
@@ -12,13 +17,20 @@ class Battle():
         self.delay_print('LOADING...')
         self.pokemon1.get_attrs()
         self.pokemon2.get_attrs()
+        self.attacking_mon = None
+        self.defending_mon = None
+        self.bottom_of_turn = False
+        self.first_turn_poke1 = True
+        self.first_turn_poke2 = True
+        self.record = Record()
 
-    def damage_multiplier(self, defending_mon, quicker_mon, move):
-        d_resistences = defending_mon.resistances
+    def damage_multiplier(self, defending_mon, attacking_mon, move):
+        """Calculates and returns weakness, resistance and same type attack bonus"""
+        d_resistances = defending_mon.resistances
         d_weaknesses = defending_mon.weaknesses
         d_ineffectives = defending_mon.ineffectives
 
-        m_type = quicker_mon.move_dict[move].get('type')
+        m_type = attacking_mon.move_dict[move].get('type')
 
         multiplier = 1
 
@@ -26,14 +38,14 @@ class Battle():
         # type is a weakness/resistance of both the defending mons type
         if m_type in d_weaknesses:
             multiplier *= (2 * d_weaknesses.count(m_type))
-        if m_type in d_resistences:
-            multiplier *= (0.5 * d_resistences.count(m_type))
+        if m_type in d_resistances:
+            multiplier *= (0.5 * d_resistances.count(m_type))
         if m_type in d_ineffectives:
             multiplier *= 0
 
         stab = 1
 
-        if m_type in quicker_mon.types:
+        if m_type in attacking_mon.types:
             # same type attack bonus is 1.5
             stab = 1.5
 
@@ -52,16 +64,25 @@ class Battle():
             atk_def_mult = attacking_mon.special_attack / defending_mon.special_defense
         else:
             atk_def_mult = attacking_mon.attack / defending_mon.defense
+            if defending_mon.reflect_barrier > 0:
+                # reduce by 1/2 extra if the defending mon has reflect up
+                atk_def_mult  = atk_def_mult / 2
 
-        if random.randint(0, 255) < attacking_mon.crit_val and multiplier != 0:
+
+        if random.randint(0, 255) < attacking_mon.crit_rate and multiplier != 0:
             crit = 2
-        
-        dmg = (((2*attacking_mon.level*crit) / 5 + 2)
-                * attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] * atk_def_mult) / 50 + 2
-        dmg *= (stab * multiplier)
-        dmg = int(dmg * random.randint(217, 255) / 255) # random multiplier
+
+        dmg = self.damage_math(attacking_mon.level, crit, attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'],
+                                 atk_def_mult, stab, multiplier)
 
         return dmg, multiplier, crit
+
+
+    def damage_math(self, level, crit, power, atk_def_mult, stab, type_multiplier):
+        dmg = (((2*level*crit) / 5 + 2)
+            * power * atk_def_mult) / 50 + 2
+        dmg *= (stab * type_multiplier)
+        return int(dmg * random.randint(217, 255) / 255) # random multiplier
 
     def input_validation(self, prompt):
         """Validates user input for attack choice in battle"""
@@ -90,109 +111,247 @@ class Battle():
         if random.randint(0, 100) > acc:
             missed = True
         return missed
-
-
-    def battle_turn1(self, quicker_mon, slower_mon):
-        print("Go", quicker_mon.name, "!")
-        for i, x in enumerate(quicker_mon.moves):
-            print(
-                i+1, x, f"--- {quicker_mon.move_dict[x]['power']} power, {quicker_mon.move_dict[x]['type']}")
-
-        print('\n')
-        index = self.input_validation("Pick a move: ")
-
-        print(quicker_mon.name, "used", list(quicker_mon.moves)[index-1])
-
-        acc = quicker_mon.move_dict[list(quicker_mon.moves)[index-1]]['accuracy']
-        miss = False
-        if acc:
-            miss = self.check_miss(quicker_mon.move_dict[list(quicker_mon.moves)[index-1]]['accuracy'])
-
-        time.sleep(1)
-        if miss:
-            print(f"{slower_mon.name} avoided the attack!")
-            dmg = 0
-        
-        else:
-            dmg, multiplier, crit = self.damage_calc(quicker_mon, slower_mon, index)
-
-            print(quicker_mon.name,
-                "did",
-                dmg,
-                "damage!")
-            
-            if crit == 2:
-                print("A critical hit!")
-
-            match multiplier:
-                case 2 | 4:
-                    print("It's super effective!")
-                case 0.5 | 0.25:
-                    print("It's not very effective...")
-                case 0:
-                    print(f"It doesn't effect the opposing {slower_mon.name}...")
-
-        slower_mon.bars -= dmg
-        slower_mon.health = ""
-
-        # for i in range(int(slower_mon.bars)):
-        #     slower_mon.health += "="
-        slower_mon.health = '=' * math.ceil((slower_mon.bars / slower_mon.max_bars) * 10)
-
-        print('\n')
-        print(quicker_mon.name, "health:", quicker_mon.health)
-        print(slower_mon.name, "health:", slower_mon.health, '\n')
-
-    def battle_turn2(self, quicker_mon, slower_mon):
-        print("Go", slower_mon.name, "!")
-        for i, x in enumerate(slower_mon.moves):
-            print(
-                i+1, x, f"--- {slower_mon.move_dict[x]['power']} power, {slower_mon.move_dict[x]['type']}")
-
-        print('\n')
-        index = self.input_validation("Pick a move: ")
-
-        print(slower_mon.name, "used", list(slower_mon.moves)[index-1])
-
-        acc = slower_mon.move_dict[list(slower_mon.moves)[index-1]]['accuracy']
-        miss = False
-        if acc:
-            miss = self.check_miss(slower_mon.move_dict[list(slower_mon.moves)[index-1]]['accuracy'])
-
-        time.sleep(1)
-        if miss:
-            print(f"{quicker_mon.name} avoided the attack!")
-            dmg = 0
-        
-        else:
-            dmg, multiplier, crit = self.damage_calc(slower_mon, quicker_mon, index)
     
-            print(slower_mon.name,
-                "did",
-                dmg,
-                "damage!")
+    def check_cfn(self, name):
+        print(f"{name} is confused!")
+        if random.randint(0, 100) < 50:
+            return True
+        return False
+    
+    def test_mons_stats(self, mon_1, mon_2):
+        # for testing stat changes only
+        print(f"{mon_1.name} stats:\n")
+        print(f"attack: {mon_1.attack}")
+        print(f"defense: {mon_1.defense}")
+        print(f"special attack: {mon_1.special_attack}")
+        print(f"special defense: {mon_1.special_defense}")
+        print(f"speed: {mon_1.speed}")
+        print(f"accuracy: {mon_1.accuracy}")
+        print(f"evasion: {mon_1.evasion}")
+
+        print(f"{mon_2.name} stats:\n")
+        print(f"attack: {mon_2.attack}")
+        print(f"defense: {mon_2.defense}")
+        print(f"special attack: {mon_2.special_attack}")
+        print(f"special defense: {mon_2.special_defense}")
+        print(f"speed: {mon_2.speed}")
+        print(f"accuracy: {mon_2.accuracy}")
+        print(f"evasion: {mon_2.evasion}")
+
+    def reroll_system(self, attacking_mon):
+        while attacking_mon.rerolls_left > 0:
+            try:
+                try:
+                    val = str(input("\nReroll moves? (1-y, 2-n) ")).lower()
+                except ValueError:
+                    print('Please input a name')
+                    continue
+
+                if val not in ['1', '2']:
+                        print('Please choose 1 or 2')
+                elif val == '1':
+                    attacking_mon.rerolls_left -= 1
+                    self.delay_print(f"Rerolling...({attacking_mon.rerolls_left} rerolls remaining!)")
+                    print("\n")
+                    attacking_mon.moves.clear()
+                    attacking_mon.move_dict.clear()
+                    attacking_mon.get_moves()
+                    for i, x in enumerate(attacking_mon.moves):
+                        attacking_mon.get_move_info(x)
+                        print(
+                            i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                elif val == '2':
+                    break
+            except KeyboardInterrupt:
+                break
+        if self.bottom_of_turn:
+            self.first_turn_poke2 = False
+        else:
+            self.first_turn_poke1 = False
+
+    def battle_turn(self, attacking_mon, defending_mon):
+        success = True
+
+        print("Go", attacking_mon.name, "!")
+        for i, x in enumerate(attacking_mon.moves):
+            print(
+                i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
             
-            if crit == 2:
-                print("A critical hit!")
+        if not self.bottom_of_turn and self.first_turn_poke1 or self.bottom_of_turn and self.first_turn_poke2:
+            # rerolling logic, only executes on each players first turn
+            self.reroll_system(attacking_mon)
 
-            match multiplier:
-                case 2 | 4:
-                    print("It's super effective!")
-                case 0.5 | 0.25:
-                    print("It's not very effective...")
-                case 0:
-                    print(f"It doesn't effect the opposing {quicker_mon.name}...")
+        if (attacking_mon.fly_dig):
+            # if in the middle of fly/dig, automatically select fly/dig again to finish attack
+            index = list(attacking_mon.moves).index(self.record.get_previous_self_atk(self.bottom_of_turn)[1]) + 1
+            print('\n')
 
-        quicker_mon.bars -= dmg
-        quicker_mon.health = ""
+        else:
+            print('\n')
+            index = self.input_validation("Pick a move: ")
 
-        # for i in range(int(quicker_mon.bars)):
-        #     quicker_mon.health += "="
-        quicker_mon.health = '=' * math.ceil((quicker_mon.bars / quicker_mon.max_bars) * 10)
+        if attacking_mon.enraged:
+            attacking_mon.enraged = False
+        
+        # check accuracy and expiring status conditions
+        acc = attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy']
+        miss = False
+        if acc:
+            miss = self.check_miss((attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['accuracy'] * 
+                                   (attacking_mon.accuracy / 100)) * (defending_mon.evasion / 100))
+            if defending_mon.fly_dig and (list(attacking_mon.moves)[index-1] != 'fly' and list(attacking_mon.moves)[index-1] != 'dig'):
+                miss = True
+
+        if attacking_mon.condition == 'slp' and attacking_mon.condition_turns == attacking_mon.condition_limit:
+            print(f"{attacking_mon.name} woke up!")
+            attacking_mon.condition_turns = 0
+            attacking_mon.condition = None
+        
+        if attacking_mon.condition == 'cfn' and attacking_mon.condition_turns == attacking_mon.condition_limit:
+            print(f"{attacking_mon.name} snapped out of confusion!")
+            attacking_mon.condition_turns = 0
+            attacking_mon.condition = None
+
+        if attacking_mon.condition == 'frz' and random.randint(0, 100) < 20:
+            print(f"{attacking_mon.name} thawed out!")
+            attacking_mon.condition = None
+        
+        time.sleep(1)
+
+        # check debilitating status conditions
+        if attacking_mon.condition == 'plz' and random.randint(0, 100) < 25:
+            print(f"{attacking_mon.name} is paralyzed! It can't move!")
+            dmg = 0
+            success = False
+
+        elif attacking_mon.condition == 'cfn' and self.check_cfn(attacking_mon.name):
+            print(f"It hurt itself in confusion!")
+            attacking_mon.bars -= (((2 * attacking_mon.level) / 5) + 2) * 40 * (attacking_mon.attack / attacking_mon.defense) / 50
+            dmg = 0
+            success = False
+
+        elif attacking_mon.condition == 'slp':
+            print(f"{attacking_mon.name} is fast asleep.")
+            dmg = 0
+            attacking_mon.condition_turns += 1
+            success = False
+        
+        elif attacking_mon.condition == 'frz':
+            print(f"{attacking_mon.name} is frozen solid!")
+            success = False
+            dmg = 0
+
+        elif attacking_mon.flinch:
+            print(f"{attacking_mon.name} flinched!")
+            success = False
+            dmg = 0
+
+        else:
+            print(attacking_mon.name, "used", list(attacking_mon.moves)[index-1])
+            if miss:
+                print(f"{defending_mon.name} avoided the attack!")
+                dmg = 0
+                success = False
+
+            elif (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] == 0 
+                  and not unique_effects(list(attacking_mon.moves)[index - 1])):
+                status_effect_calc(attacking_mon, defending_mon, index)
+                dmg = 0
+
+            else:
+                status_effect_calc(attacking_mon, defending_mon, index)
+                dmg, multiplier, crit = self.damage_calc(attacking_mon, defending_mon, index)
+
+                if attacking_mon.fly_dig:
+                    attacking_mon.fly_dig = False
+
+                elif unique_effects(list(attacking_mon.moves)[index - 1]):
+                    dmg = apply_effects(attacking_mon, defending_mon, list(attacking_mon.moves)[index - 1], self.record, self.bottom_of_turn, dmg)
+                    crit = 1
+
+                if dmg != 0:
+                    if defending_mon.enraged:
+                        x = stat_mod(defending_mon.atk_stage, True)
+                        defending_mon.attack = round(attacking_mon.attack * x)
+                        defending_mon.atk_stage += 1
+                        print(f'{defending_mon.name}s rage boosted its attack!')
+
+                    print(attacking_mon.name,
+                        "did",
+                        dmg,
+                        "damage!")
+                
+                    if crit == 2:
+                        print("A critical hit!")
+
+                    match multiplier:
+                        case 2 | 4:
+                            print("It's super effective!")
+                        case 0.5 | 0.25:
+                            print("It's not very effective...")
+                        case 0:
+                            print(f"It doesn't effect the opposing {defending_mon.name}...")
+
+        defending_mon.bars -= dmg
+
+        if (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] and 
+            attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] != 100 and success):
+            status_effect_calc(attacking_mon, defending_mon, index)
+
+        if self.bottom_of_turn:
+            self.record.record_second_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)
+            if defending_mon.condition == ('psn' or 'brn'):
+                defending_mon.bars -= (1/16)*defending_mon.max_bars
+                print(f"\n{defending_mon.name} is hurt by poison!")
+            if attacking_mon.condition == ('psn' or 'brn'):
+                attacking_mon.bars -= (1/16)*attacking_mon.max_bars
+                print(f"\n{attacking_mon.name} is hurt by poison!")
+
+            if attacking_mon.condition:
+                attacking_mon.condition_turns += 1
+            if defending_mon.condition:
+                defending_mon.condition_turns += 1
+            attacking_mon.flinch = False
+            defending_mon.flinch = False
+            if attacking_mon.reflect_barrier > 0:
+                attacking_mon.reflect_barrier -= 1
+            if defending_mon.reflect_barrier > 0:
+                defending_mon.reflect_barrier -= 1
+            if attacking_mon.mist > 0:
+                attacking_mon.mist -= 1
+            if defending_mon.mist > 0:
+                defending_mon.mist -= 1
+        
+        else:
+            self.record.record_first_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)
+
+            # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
+
+        prev_mon1_health = self.pokemon1.health
+        prev_mon2_health = self.pokemon2.health
+        attacking_mon.health = math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
+        defending_mon.health = math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
 
         print('\n')
-        print(slower_mon.name, "health:", slower_mon.health)
-        print(quicker_mon.name, "health:", quicker_mon.health, '\n')
+        print_health(0, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        for i in range(1, (prev_mon1_health - self.pokemon1.health + 1)):
+            print_health(i, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+            if i == prev_mon1_health:
+                break
+        finish_print(prev_mon1_health - max(0, self.pokemon1.health), prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        time.sleep(0.5)
+
+        print_health(0, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        for i in range(1, (prev_mon2_health - self.pokemon2.health + 1)):
+            print_health(i, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+            if i == prev_mon2_health:
+                break
+        finish_print(prev_mon2_health - max(0, self.pokemon2.health), prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        time.sleep(0.5)
+        print("\n")
+        # print(self.pokemon1.name, "health:", self.pokemon1.health)
+        # print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
+        
 
     def delay_print(self, s):
         for c in s:
@@ -212,26 +371,33 @@ class Battle():
 
     # evaluate speed of pokemon
 
-        while self.pokemon1.speed > self.pokemon2.speed == True:
-            quicker_mon = self.pokemon1
-            slower_mon = self.pokemon2
+        if self.pokemon1.speed > self.pokemon2.speed:
+            self.attacking_mon = self.pokemon1
+            self.defending_mon = self.pokemon2
 
         else:
-            slower_mon = self.pokemon1
-            quicker_mon = self.pokemon2
+            self.defending_mon = self.pokemon1
+            self.attacking_mon = self.pokemon2
 
-        while (quicker_mon.bars > 0) and (slower_mon.bars > 0):
+        while (self.pokemon1.bars > 0) and (self.pokemon2.bars > 0):
 
-            self.battle_turn1(quicker_mon, slower_mon)
+            self.battle_turn(self.attacking_mon, self.defending_mon)
 
-            if slower_mon.bars <= 0:
-                self.delay_print("\n..." + slower_mon.name + ' fainted.')
+            if self.defending_mon.bars <= 0:
+                self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
+                break
+            if self.attacking_mon.bars <= 0:
+                self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
                 break
 
         # mirroring the attack pattern of the quicker mon but for the slower mon
-
-            self.battle_turn2(quicker_mon, slower_mon)
-
-            if quicker_mon.bars <= 0:
-                self.delay_print("\n..." + quicker_mon.name + ' fainted.')
-                break
+            if self.bottom_of_turn:
+                if self.defending_mon.speed >= self.attacking_mon.speed:
+                    temp_mon = self.attacking_mon
+                    self.attacking_mon = self.defending_mon
+                    self.defending_mon = temp_mon
+            else:
+                temp_mon = self.attacking_mon
+                self.attacking_mon = self.defending_mon
+                self.defending_mon = temp_mon
+            self.bottom_of_turn = not self.bottom_of_turn

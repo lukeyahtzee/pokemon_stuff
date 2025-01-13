@@ -119,6 +119,7 @@ class Battle():
         return False
     
     def test_mons_stats(self, mon_1, mon_2):
+        # for testing stat changes only
         print(f"{mon_1.name} stats:\n")
         print(f"attack: {mon_1.attack}")
         print(f"defense: {mon_1.defense}")
@@ -350,6 +351,7 @@ class Battle():
         print("\n")
         # print(self.pokemon1.name, "health:", self.pokemon1.health)
         # print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
+        
 
     def delay_print(self, s):
         for c in s:

@@ -21,9 +21,9 @@ class Pokemon():
         self.name = name
         self.types = []
         self.moves = []
-        self.health = 10
-        self.bars = 30
-        self.max_bars = 0
+        self.health_bars = 10
+        self.hp = 0
+        self.max_hp = self.hp
         self.level = 50
         self.pokemon_url = 'https://pokeapi.co/api/v2/pokemon/' + \
             str.lower(self.name).strip()+'/'
@@ -34,7 +34,6 @@ class Pokemon():
         self.get_base_stats()
         self.accuracy = 100
         self.evasion = 100
-        self.hp = int(self.base_stats['hp'].iloc[0])
         self.attack = int(self.base_stats['attack'].iloc[0])
         self.atk_stage = 0
         self.defense = int(self.base_stats['defense'].iloc[0])
@@ -164,9 +163,8 @@ class Pokemon():
         stats_num = [x['base_stat'] for x in data['stats']]
         stats = [x['stat']['name'] for x in data['stats']]
 
-        hp = stats_num[0]
-        self.bars = hp
-        self.max_bars = self.bars
+        self.hp = stats_num[0] * 2
+        self.max_hp = self.hp
 
         name = data['forms'][0]['name']
         # target = stats.index('special-attack')

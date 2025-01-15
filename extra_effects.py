@@ -41,7 +41,7 @@ def unique_effects(move):
 
 def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
     if move == 'leech-life' or move == 'mega-drain':
-        mon.bars = min(mon.bars + (dmg / 2), mon.max_bars)
+        mon.hp = min(mon.hp + (dmg / 2), mon.max_hp)
         print(f"{defending_mon.name} had its energy drained!")
         return dmg
     
@@ -65,7 +65,7 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
             return 5 * dmg
         
     if move == 'horn-drill':
-        dmg = defending_mon.max_bars
+        dmg = defending_mon.max_hp
         return dmg
 
     if move == 'mist':
@@ -93,21 +93,21 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
     
     if move == 'self-destruct' or move == 'explosion':
         print(f'{mon.name} self destructed!')
-        mon.bars = 0
+        mon.hp = 0
         return 200
     
     if move == 'rest':
-        if mon.bars == mon.max_bars or mon.condition == 'slp':
+        if mon.hp == mon.max_hp or mon.condition == 'slp':
             print('But it failed!')
             return 0
         else:
             mon.condition = 'slp'
-            mon.bars = mon.max_bars
+            mon.hp = mon.max_hp
             print(f'{mon.name} fell asleep and regained health!')
         return 0
     
     if move == 'super-fang':
-        return round(defending_mon.bars / 2)
+        return round(defending_mon.hp / 2)
     
     if move == 'seismic-toss':
         return 50
@@ -135,7 +135,7 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         return 20
     
     if move == 'double-edge':
-        mon.bars -= ((1/3) * dmg)
+        mon.hp -= ((1/3) * dmg)
         print(f"{mon.name} was hurt by recoil!")
         return dmg
         # applies 1/3 the damage inflicted as recoil

@@ -68,7 +68,6 @@ class Battle():
                 # reduce by 1/2 extra if the defending mon has reflect up
                 atk_def_mult  = atk_def_mult / 2
 
-
         if random.randint(0, 255) < attacking_mon.crit_rate and multiplier != 0:
             crit = 2
 
@@ -219,14 +218,16 @@ class Battle():
         time.sleep(1)
 
         # check debilitating status conditions
-        if attacking_mon.condition == 'plz' and random.randint(0, 100) < 25:
-            print(f"{attacking_mon.name} is paralyzed! It can't move!")
-            dmg = 0
-            success = False
+        if attacking_mon.condition == 'plz':
+            print(f"{attacking_mon.name} is paralyzed!")
+            if random.randint(0, 100) < 25:
+                print(f"{attacking_mon.name} was unable to move!")
+                dmg = 0
+                success = False
 
         elif attacking_mon.condition == 'cfn' and self.check_cfn(attacking_mon.name):
             print(f"It hurt itself in confusion!")
-            attacking_mon.bars -= (((2 * attacking_mon.level) / 5) + 2) * 40 * (attacking_mon.attack / attacking_mon.defense) / 50
+            attacking_mon.hp -= (((2 * attacking_mon.level) / 5) + 2) * 40 * (attacking_mon.attack / attacking_mon.defense) / 50
             dmg = 0
             success = False
 
@@ -269,10 +270,10 @@ class Battle():
                     dmg = apply_effects(attacking_mon, defending_mon, list(attacking_mon.moves)[index - 1], self.record, self.bottom_of_turn, dmg)
                     crit = 1
 
-                if dmg != 0:
+                if dmg != 0 or attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['power'] != 0:
                     if defending_mon.enraged:
                         x = stat_mod(defending_mon.atk_stage, True)
-                        defending_mon.attack = round(attacking_mon.attack * x)
+                        defending_mon.attack = round(defending_mon.attack * x)
                         defending_mon.atk_stage += 1
                         print(f'{defending_mon.name}s rage boosted its attack!')
 
@@ -292,7 +293,7 @@ class Battle():
                         case 0:
                             print(f"It doesn't effect the opposing {defending_mon.name}...")
 
-        defending_mon.bars -= dmg
+        defending_mon.hp -= dmg
 
         if (attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] and 
             attacking_mon.move_dict[list(attacking_mon.moves)[index-1]]['effect-chance'] != 100 and success):
@@ -300,12 +301,12 @@ class Battle():
 
         if self.bottom_of_turn:
             self.record.record_second_move(attacking_mon.name, list(attacking_mon.moves)[index-1], dmg, success)
-            if defending_mon.condition == ('psn' or 'brn'):
-                defending_mon.bars -= (1/16)*defending_mon.max_bars
+            if defending_mon.condition == ('psn'):
+                defending_mon.hp -= (1/16)*defending_mon.max_hp
                 print(f"\n{defending_mon.name} is hurt by poison!")
-            if attacking_mon.condition == ('psn' or 'brn'):
-                attacking_mon.bars -= (1/16)*attacking_mon.max_bars
-                print(f"\n{attacking_mon.name} is hurt by poison!")
+            if attacking_mon.condition == ('brn'):
+                attacking_mon.hp -= (1/16)*attacking_mon.max_hp
+                print(f"\n{attacking_mon.name} is hurt by it's burn!")
 
             if attacking_mon.condition:
                 attacking_mon.condition_turns += 1
@@ -327,30 +328,29 @@ class Battle():
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
-        prev_mon1_health = self.pokemon1.health
-        prev_mon2_health = self.pokemon2.health
-        attacking_mon.health = math.ceil((attacking_mon.bars / attacking_mon.max_bars) * 10)
-        defending_mon.health = math.ceil((defending_mon.bars / defending_mon.max_bars) * 10)
+
+        prev_mon1_health = self.pokemon1.health_bars
+        prev_mon2_health = self.pokemon2.health_bars
+        attacking_mon.health_bars = math.ceil((attacking_mon.hp / attacking_mon.max_hp) * 10)
+        defending_mon.health_bars = math.ceil((defending_mon.hp / defending_mon.max_hp) * 10)
 
         print('\n')
         print_health(0, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
-        for i in range(1, (prev_mon1_health - self.pokemon1.health + 1)):
+        for i in range(1, (prev_mon1_health - self.pokemon1.health_bars + 1)):
             print_health(i, 10, prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
             if i == prev_mon1_health:
                 break
-        finish_print(prev_mon1_health - max(0, self.pokemon1.health), prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
+        finish_print(prev_mon1_health - max(0, self.pokemon1.health_bars), prev_mon1_health, self.pokemon1.name, self.pokemon1.condition)
         time.sleep(0.5)
 
         print_health(0, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
-        for i in range(1, (prev_mon2_health - self.pokemon2.health + 1)):
+        for i in range(1, (prev_mon2_health - self.pokemon2.health_bars + 1)):
             print_health(i, 10, prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
             if i == prev_mon2_health:
                 break
-        finish_print(prev_mon2_health - max(0, self.pokemon2.health), prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
+        finish_print(prev_mon2_health - max(0, self.pokemon2.health_bars), prev_mon2_health, self.pokemon2.name, self.pokemon2.condition)
         time.sleep(0.5)
         print("\n")
-        # print(self.pokemon1.name, "health:", self.pokemon1.health)
-        # print(self.pokemon2.name, "health:", self.pokemon2.health, '\n')
         
 
     def delay_print(self, s):
@@ -379,14 +379,14 @@ class Battle():
             self.defending_mon = self.pokemon1
             self.attacking_mon = self.pokemon2
 
-        while (self.pokemon1.bars > 0) and (self.pokemon2.bars > 0):
+        while (self.pokemon1.hp > 0) and (self.pokemon2.hp > 0):
 
             self.battle_turn(self.attacking_mon, self.defending_mon)
 
-            if self.defending_mon.bars <= 0:
+            if self.defending_mon.hp <= 0:
                 self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
                 break
-            if self.attacking_mon.bars <= 0:
+            if self.attacking_mon.hp <= 0:
                 self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
                 break
 

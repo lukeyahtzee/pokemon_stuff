@@ -234,7 +234,6 @@ class Battle():
         elif attacking_mon.condition == 'slp':
             print(f"{attacking_mon.name} is fast asleep.")
             dmg = 0
-            attacking_mon.condition_turns += 1
             success = False
         
         elif attacking_mon.condition == 'frz':
@@ -249,6 +248,7 @@ class Battle():
 
         else:
             print(attacking_mon.name, "used", list(attacking_mon.moves)[index-1])
+            dmg = 0
             if miss:
                 print(f"{defending_mon.name} avoided the attack!")
                 dmg = 0

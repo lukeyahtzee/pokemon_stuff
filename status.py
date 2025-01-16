@@ -142,6 +142,8 @@ def print_condition(condition, defending_mon):
     if condition == 'slp':
         print(defending_mon.name, 'fell asleep!')
         defending_mon.condition_limit = random.randint(1, 7)
+        print(defending_mon.condition_limit)
+        print(defending_mon.condition_turns)
     if condition == 'psn':
         print(defending_mon.name, 'was poisoned!')
     if condition == 'plz':

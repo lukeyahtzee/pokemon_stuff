@@ -55,6 +55,7 @@ class Pokemon():
         self.focus_energy = False
         self.mist = 0
         self.enraged = False
+        # restrict moves that ban moves, swap out enemy pokemon or would require super complex systems
         self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap', 'mirror-move', 'disable']
 
     def api_call(self, url):

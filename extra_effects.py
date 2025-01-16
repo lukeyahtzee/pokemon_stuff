@@ -6,6 +6,7 @@ import random
 
 
 extra_effects_moves = [
+    'recover',
     'reflect',
     'mimic',
     'protect',
@@ -40,6 +41,8 @@ def unique_effects(move):
     else: return False
 
 def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
+    if move == 'recover':
+        mon.hp += min(mon.hp + (mon.max_hp / 2), mon.max_hp)
     if move == 'leech-life' or move == 'mega-drain':
         mon.hp = min(mon.hp + (dmg / 2), mon.max_hp)
         print(f"{defending_mon.name} had its energy drained!")

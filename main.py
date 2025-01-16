@@ -2,6 +2,7 @@
 from pokemon import Pokemon
 from battle import Battle
 from pokedex import check_pokedex, pokedex
+from move_records import Record
 
 
 def main():

@@ -56,7 +56,7 @@ class Pokemon():
         self.mist = 0
         self.enraged = False
         # restrict moves that ban moves, swap out enemy pokemon or would require super complex systems
-        self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap', 'mirror-move', 'disable']
+        self.restricted_moves = ['substitute', 'protect', 'bide', 'whirlwind', 'fissure', 'wrap', 'mirror-move', 'disable', 'roar']
 
     def api_call(self, url):
         """Makes api call to the Pokemon type endpoint and returns json text"""

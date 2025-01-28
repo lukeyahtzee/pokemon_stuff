@@ -32,7 +32,8 @@ extra_effects_moves = [
     'mist',
     'fury-attack',
     'horn-drill',
-    'rage'
+    'rage',
+    'night-shade'
 ]
 
 def unique_effects(move):
@@ -46,6 +47,13 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
     if move == 'leech-life' or move == 'mega-drain':
         mon.hp = min(mon.hp + (dmg / 2), mon.max_hp)
         print(f"{defending_mon.name} had its energy drained!")
+        return dmg
+    
+    if move == 'night-shade':
+        dmg = mon.level
+        if 'normal' or 'fighting' in defending_mon.types:
+            print(f"it doesn't effect the opposing {defending_mon.name}...")
+            return 0
         return dmg
     
     if move == 'rage':

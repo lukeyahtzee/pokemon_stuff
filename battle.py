@@ -423,9 +423,8 @@ class Battle():
                 self.execute_attacks(self.poke2_used_move, self.defending_mon, self.attacking_mon)
                 if self.check_ded():
                     break
-
-            if self.defending_mon.speed > self.attacking_mon.speed:
-                temp_mon = self.attacking_mon
-                self.attacking_mon = self.defending_mon
-                self.defending_mon = temp_mon
+                if self.defending_mon.speed > self.attacking_mon.speed:
+                    temp_mon = self.attacking_mon
+                    self.attacking_mon = self.defending_mon
+                    self.defending_mon = temp_mon
             self.bottom_of_turn = not self.bottom_of_turn

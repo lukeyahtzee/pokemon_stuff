@@ -99,6 +99,9 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
             mon.reflect_barrier = 5
         return 0
 
+    #TODO: fly and dig evaluate damage on the first attack turn, i.e they will print 0 damage 
+    #       and if it's ineffective/effective, when it should skip that until the second turn
+    #       defending pokemon also has the chance to avoid on the first turn, which shouldn't be possible
     if move == 'fly':
         print(f'{mon.name} flew up high!')
         mon.fly_dig = True

@@ -350,7 +350,6 @@ class Battle():
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
-
         prev_mon1_health = self.pokemon1.health_bars
         prev_mon2_health = self.pokemon2.health_bars
         attacking_mon.health_bars = math.ceil((attacking_mon.hp / attacking_mon.max_hp) * 10)
@@ -416,12 +415,15 @@ class Battle():
                 self.poke1_used_move = self.battle_turn(self.attacking_mon, self.defending_mon)
             else:
                 self.poke2_used_move = self.battle_turn(self.defending_mon, self.attacking_mon)
+                self.bottom_of_turn = False
                 self.execute_attacks(self.poke1_used_move, self.attacking_mon, self.defending_mon)
                 if self.check_ded():
                     break
+                self.bottom_of_turn = True
                 self.execute_attacks(self.poke2_used_move, self.defending_mon, self.attacking_mon)
                 if self.check_ded():
                     break
+
             if self.defending_mon.speed > self.attacking_mon.speed:
                 temp_mon = self.attacking_mon
                 self.attacking_mon = self.defending_mon

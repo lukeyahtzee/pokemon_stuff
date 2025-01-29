@@ -33,7 +33,8 @@ extra_effects_moves = [
     'fury-attack',
     'horn-drill',
     'rage',
-    'night-shade'
+    'night-shade',
+    'splash'
 ]
 
 def unique_effects(move):
@@ -59,6 +60,12 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
     if move == 'rage':
         mon.enraged = True
         return dmg
+    
+    if move == 'splash':
+        print("nothing happened!")
+
+    if move == 'transform':
+        print("but it failed!")
     
     if move == 'fury-attack':
         x = random.randint(0, 7)
@@ -150,6 +157,8 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         print(f"{mon.name} was hurt by recoil!")
         return dmg
         # applies 1/3 the damage inflicted as recoil
+        # TODO: this move should deal recoil even if it misses
+        # currently nothing executes if this attack misses. may require a refactor
 
     if move == 'focus-energy':
         if not mon.focus_energy:

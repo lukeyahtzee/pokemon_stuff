@@ -23,6 +23,8 @@ class Battle():
         self.first_turn_poke1 = True
         self.first_turn_poke2 = True
         self.record = Record()
+        self.poke1_used_move = -1
+        self.poke2_used_move = -1
 
     def damage_multiplier(self, defending_mon, attacking_mon, move):
         """Calculates and returns weakness, resistance and same type attack bonus"""
@@ -157,8 +159,16 @@ class Battle():
                     attacking_mon.get_moves()
                     for i, x in enumerate(attacking_mon.moves):
                         attacking_mon.get_move_info(x)
+                        power = attacking_mon.move_dict[x]['power']
+                        if power == 0 or power == None:
+                            if not unique_effects(x):
+                                power = '-'
+                            else:
+                                power = '?'
+                        else:
+                            power = str(power)
                         print(
-                            i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                            i+1, x, f"--- {power} power, {attacking_mon.move_dict[x]['type']}")
                 elif val == '2':
                     break
             except KeyboardInterrupt:
@@ -169,12 +179,19 @@ class Battle():
             self.first_turn_poke1 = False
 
     def battle_turn(self, attacking_mon, defending_mon):
-        success = True
-
         print("Go", attacking_mon.name, "!")
+        index = -1
         for i, x in enumerate(attacking_mon.moves):
+            power = attacking_mon.move_dict[x]['power']
+            if power == 0 or power == None:
+                if not unique_effects(x):
+                    power = '-'
+                else:
+                    power = '?'
+            else:
+                power = str(power)
             print(
-                i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                i+1, x, f"--- {power} power, {attacking_mon.move_dict[x]['type']}")
             
         if not self.bottom_of_turn and self.first_turn_poke1 or self.bottom_of_turn and self.first_turn_poke2:
             # rerolling logic, only executes on each players first turn
@@ -188,6 +205,11 @@ class Battle():
         else:
             print('\n')
             index = self.input_validation("Pick a move: ")
+        return index
+
+
+    def execute_attacks(self, index, attacking_mon, defending_mon):
+        success = True
 
         if attacking_mon.enraged:
             attacking_mon.enraged = False
@@ -359,6 +381,16 @@ class Battle():
             sys.stdout.flush()
             time.sleep(0.05)
 
+    def check_ded(self):
+        if self.defending_mon.hp <= 0:
+            self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
+            return True
+        if self.attacking_mon.hp <= 0:
+            self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
+            return True
+        return False
+
+
     def commence_battle(self):
 
         print('\n')
@@ -380,23 +412,17 @@ class Battle():
             self.attacking_mon = self.pokemon2
 
         while (self.pokemon1.hp > 0) and (self.pokemon2.hp > 0):
-
-            self.battle_turn(self.attacking_mon, self.defending_mon)
-
-            if self.defending_mon.hp <= 0:
-                self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
-                break
-            if self.attacking_mon.hp <= 0:
-                self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
-                break
-
-        # mirroring the attack pattern of the quicker mon but for the slower mon
-            if self.bottom_of_turn:
-                if self.defending_mon.speed >= self.attacking_mon.speed:
-                    temp_mon = self.attacking_mon
-                    self.attacking_mon = self.defending_mon
-                    self.defending_mon = temp_mon
+            if not self.bottom_of_turn:
+                self.poke1_used_move = self.battle_turn(self.attacking_mon, self.defending_mon)
             else:
+                self.poke2_used_move = self.battle_turn(self.defending_mon, self.attacking_mon)
+                self.execute_attacks(self.poke1_used_move, self.attacking_mon, self.defending_mon)
+                if self.check_ded():
+                    break
+                self.execute_attacks(self.poke2_used_move, self.defending_mon, self.attacking_mon)
+                if self.check_ded():
+                    break
+            if self.defending_mon.speed > self.attacking_mon.speed:
                 temp_mon = self.attacking_mon
                 self.attacking_mon = self.defending_mon
                 self.defending_mon = temp_mon

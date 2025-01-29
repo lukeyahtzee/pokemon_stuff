@@ -33,7 +33,8 @@ extra_effects_moves = [
     'fury-attack',
     'horn-drill',
     'rage',
-    'night-shade'
+    'night-shade',
+    'splash'
 ]
 
 def unique_effects(move):
@@ -59,6 +60,12 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
     if move == 'rage':
         mon.enraged = True
         return dmg
+    
+    if move == 'splash':
+        print("nothing happened!")
+
+    if move == 'transform':
+        print("but it failed!")
     
     if move == 'fury-attack':
         x = random.randint(0, 7)
@@ -92,6 +99,9 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
             mon.reflect_barrier = 5
         return 0
 
+    #TODO: fly and dig evaluate damage on the first attack turn, i.e they will print 0 damage 
+    #       and if it's ineffective/effective, when it should skip that until the second turn
+    #       defending pokemon also has the chance to avoid on the first turn, which shouldn't be possible
     if move == 'fly':
         print(f'{mon.name} flew up high!')
         mon.fly_dig = True
@@ -150,6 +160,8 @@ def apply_effects(mon, defending_mon, move, r, bottom_of_turn, dmg):
         print(f"{mon.name} was hurt by recoil!")
         return dmg
         # applies 1/3 the damage inflicted as recoil
+        # TODO: this move should deal recoil even if it misses
+        # currently nothing executes if this attack misses. may require a refactor
 
     if move == 'focus-energy':
         if not mon.focus_energy:

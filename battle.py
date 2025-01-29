@@ -2,11 +2,13 @@ import random
 import time
 import sys
 import math
+import getpass
 from status import status_effect_calc
 from extra_effects import unique_effects, apply_effects
 from move_records import Record
 from dynamic_healthbar import print_health, finish_print
 from status import stat_mod
+
 
 
 class Battle():
@@ -90,7 +92,8 @@ class Battle():
         while True:
             try:
                 try:
-                    val = int(input(prompt))
+                    val = int(getpass.getpass(prompt=prompt))
+                    print('')
                 except ValueError:
                     print('Please input a number')
                     continue

@@ -2,11 +2,13 @@ import random
 import time
 import sys
 import math
+import getpass
 from status import status_effect_calc
 from extra_effects import unique_effects, apply_effects
 from move_records import Record
 from dynamic_healthbar import print_health, finish_print
 from status import stat_mod
+
 
 
 class Battle():
@@ -23,6 +25,8 @@ class Battle():
         self.first_turn_poke1 = True
         self.first_turn_poke2 = True
         self.record = Record()
+        self.poke1_used_move = -1
+        self.poke2_used_move = -1
 
     def damage_multiplier(self, defending_mon, attacking_mon, move):
         """Calculates and returns weakness, resistance and same type attack bonus"""
@@ -83,17 +87,22 @@ class Battle():
         dmg *= (stab * type_multiplier)
         return int(dmg * random.randint(217, 255) / 255) # random multiplier
 
-    def input_validation(self, prompt):
+    def input_validation(self, prompt, mon):
         """Validates user input for attack choice in battle"""
         while True:
             try:
                 try:
-                    val = int(input(prompt))
+                    val = int(getpass.getpass(prompt=prompt))
+                    print('')
                 except ValueError:
                     print('Please input a number')
                     continue
 
                 if val not in [1, 2, 3, 4]:
+                    print(
+                        'Please input a number corresponding to the attack you wish to use')
+                    continue
+                if val > len(mon.move_dict):
                     print(
                         'Please input a number corresponding to the attack you wish to use')
                     continue
@@ -158,7 +167,7 @@ class Battle():
                     for i, x in enumerate(attacking_mon.moves):
                         attacking_mon.get_move_info(x)
                         print(
-                            i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                            i+1, x, f"--- {attacking_mon.move_dict[x]['type']}, {attacking_mon.move_dict[x]['damage_class']}")
                 elif val == '2':
                     break
             except KeyboardInterrupt:
@@ -169,12 +178,12 @@ class Battle():
             self.first_turn_poke1 = False
 
     def battle_turn(self, attacking_mon, defending_mon):
-        success = True
-
         print("Go", attacking_mon.name, "!")
+        index = -1
         for i, x in enumerate(attacking_mon.moves):
+            power = attacking_mon.move_dict[x]['power']
             print(
-                i+1, x, f"--- {attacking_mon.move_dict[x]['power']} power, {attacking_mon.move_dict[x]['type']}")
+                i+1, x, f"--- {attacking_mon.move_dict[x]['type']}, {attacking_mon.move_dict[x]['damage_class']}")
             
         if not self.bottom_of_turn and self.first_turn_poke1 or self.bottom_of_turn and self.first_turn_poke2:
             # rerolling logic, only executes on each players first turn
@@ -187,7 +196,12 @@ class Battle():
 
         else:
             print('\n')
-            index = self.input_validation("Pick a move: ")
+            index = self.input_validation("Pick a move: ", attacking_mon)
+        return index
+
+
+    def execute_attacks(self, index, attacking_mon, defending_mon):
+        success = True
 
         if attacking_mon.enraged:
             attacking_mon.enraged = False
@@ -328,7 +342,6 @@ class Battle():
 
             # self.test_mons_stats(attacking_mon, defending_mon) # test function, prints pokemons stats each turn
 
-
         prev_mon1_health = self.pokemon1.health_bars
         prev_mon2_health = self.pokemon2.health_bars
         attacking_mon.health_bars = math.ceil((attacking_mon.hp / attacking_mon.max_hp) * 10)
@@ -359,6 +372,16 @@ class Battle():
             sys.stdout.flush()
             time.sleep(0.05)
 
+    def check_ded(self):
+        if self.defending_mon.hp <= 0:
+            self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
+            return True
+        if self.attacking_mon.hp <= 0:
+            self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
+            return True
+        return False
+
+
     def commence_battle(self):
 
         print('\n')
@@ -380,24 +403,20 @@ class Battle():
             self.attacking_mon = self.pokemon2
 
         while (self.pokemon1.hp > 0) and (self.pokemon2.hp > 0):
-
-            self.battle_turn(self.attacking_mon, self.defending_mon)
-
-            if self.defending_mon.hp <= 0:
-                self.delay_print("\n..." + self.defending_mon.name + ' fainted.')
-                break
-            if self.attacking_mon.hp <= 0:
-                self.delay_print("\n..." + self.attacking_mon.name + ' fainted.')
-                break
-
-        # mirroring the attack pattern of the quicker mon but for the slower mon
-            if self.bottom_of_turn:
-                if self.defending_mon.speed >= self.attacking_mon.speed:
+            if not self.bottom_of_turn:
+                self.poke1_used_move = self.battle_turn(self.attacking_mon, self.defending_mon)
+            else:
+                self.poke2_used_move = self.battle_turn(self.defending_mon, self.attacking_mon)
+                self.bottom_of_turn = False
+                self.execute_attacks(self.poke1_used_move, self.attacking_mon, self.defending_mon)
+                if self.check_ded():
+                    break
+                self.bottom_of_turn = True
+                self.execute_attacks(self.poke2_used_move, self.defending_mon, self.attacking_mon)
+                if self.check_ded():
+                    break
+                if self.defending_mon.speed > self.attacking_mon.speed:
                     temp_mon = self.attacking_mon
                     self.attacking_mon = self.defending_mon
                     self.defending_mon = temp_mon
-            else:
-                temp_mon = self.attacking_mon
-                self.attacking_mon = self.defending_mon
-                self.defending_mon = temp_mon
             self.bottom_of_turn = not self.bottom_of_turn

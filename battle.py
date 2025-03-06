@@ -87,7 +87,7 @@ class Battle():
         dmg *= (stab * type_multiplier)
         return int(dmg * random.randint(217, 255) / 255) # random multiplier
 
-    def input_validation(self, prompt):
+    def input_validation(self, prompt, mon):
         """Validates user input for attack choice in battle"""
         while True:
             try:
@@ -99,6 +99,10 @@ class Battle():
                     continue
 
                 if val not in [1, 2, 3, 4]:
+                    print(
+                        'Please input a number corresponding to the attack you wish to use')
+                    continue
+                if val > len(mon.move_dict):
                     print(
                         'Please input a number corresponding to the attack you wish to use')
                     continue
@@ -207,7 +211,7 @@ class Battle():
 
         else:
             print('\n')
-            index = self.input_validation("Pick a move: ")
+            index = self.input_validation("Pick a move: ", attacking_mon)
         return index
 
 

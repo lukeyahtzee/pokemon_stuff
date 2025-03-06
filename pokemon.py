@@ -72,7 +72,8 @@ class Pokemon():
         valid_moves = []
         for i in range(num_of_moves):
             if (response_json['moves'][i]['version_group_details'][0]['version_group']['name'] == ('red-blue' or 'yellow') and
-                response_json['moves'][i]['move']['name'] not in self.restricted_moves):
+                response_json['moves'][i]['move']['name'] not in self.restricted_moves and 
+                response_json['moves'][i]['version_group_details'][0]['move_learn_method']['name'] in ('level-up', 'egg')):
                 valid_moves.append(i)
         num_of_moves = len(valid_moves)
         if num_of_moves > 4:

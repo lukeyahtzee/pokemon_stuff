@@ -171,7 +171,7 @@ class Battle():
                         else:
                             power = str(power)
                         print(
-                            i+1, x, f"--- {power} power, {attacking_mon.move_dict[x]['type']}")
+                            i+1, x, f"--- {attacking_mon.move_dict[x]['type']}, {attacking_mon.move_dict[x]['damage_class']}")
                 elif val == '2':
                     break
             except KeyboardInterrupt:
@@ -194,7 +194,7 @@ class Battle():
             else:
                 power = str(power)
             print(
-                i+1, x, f"--- {power} power, {attacking_mon.move_dict[x]['type']}")
+                i+1, x, f"--- {attacking_mon.move_dict[x]['type']}, {attacking_mon.move_dict[x]['damage_class']}")
             
         if not self.bottom_of_turn and self.first_turn_poke1 or self.bottom_of_turn and self.first_turn_poke2:
             # rerolling logic, only executes on each players first turn

@@ -166,14 +166,6 @@ class Battle():
                     attacking_mon.get_moves()
                     for i, x in enumerate(attacking_mon.moves):
                         attacking_mon.get_move_info(x)
-                        power = attacking_mon.move_dict[x]['power']
-                        if power == 0 or power == None:
-                            if not unique_effects(x):
-                                power = '-'
-                            else:
-                                power = '?'
-                        else:
-                            power = str(power)
                         print(
                             i+1, x, f"--- {attacking_mon.move_dict[x]['type']}, {attacking_mon.move_dict[x]['damage_class']}")
                 elif val == '2':
@@ -190,13 +182,6 @@ class Battle():
         index = -1
         for i, x in enumerate(attacking_mon.moves):
             power = attacking_mon.move_dict[x]['power']
-            if power == 0 or power == None:
-                if not unique_effects(x):
-                    power = '-'
-                else:
-                    power = '?'
-            else:
-                power = str(power)
             print(
                 i+1, x, f"--- {attacking_mon.move_dict[x]['type']}, {attacking_mon.move_dict[x]['damage_class']}")
             
